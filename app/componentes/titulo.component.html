@@ -1,0 +1,14 @@
+<div class="row">
+    <h3 class="col-md-6 col-sm-6 col-xs-6">
+        <a title="Volver" class='label label-default' (click)="goBack()" *ngIf="showBackButton()">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+        </a>
+        <span class="label">{{titulo | uppercase}}</span>
+    </h3>
+    <div class="col-md-6 col-sm-6 col-xs-6">
+        <div class="pull-right text-center">
+            <img src="./images/iconoalmafrigo48.png" />
+            <div>ALMAFRIGO</div>
+        </div>
+    </div>
+</div>

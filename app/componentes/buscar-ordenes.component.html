@@ -1,0 +1,56 @@
+<div class="container" @flyInOut="'in'">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <titulo titulo="Burcar Órdenes de Salida"></titulo>
+        </div>
+        <div class="panel-body">
+            <span>Ver Órdenes</span>
+            <select [(ngModel)]="Estado" (ngModelChange)="goToEstado(Estado)">
+                <option value="0">Ingresadas</option>
+                <option value="3">Preparadas</option>
+                <option value="-1">Por Folio</option>
+            </select>
+            <span *ngIf="Estado == '-1'">
+                <input type="number" [(ngModel)] = "Folio" placeholder="Ej.: 235" />
+                <input type="button" (click) = "BuscarPorFolio(Folio)" value="Buscar Orden" />
+            </span>
+
+        </div>
+    </div>
+
+    <div *ngIf="Ordenes?.length > 0" class="panel panel-default">
+        <div class="panel-heading">Órdenes de Salida Para Facturar</div>
+        <table class="table table-striped table-hover table-condensed">
+
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Folio</th>
+                <th>Destino</th>
+                <th>Direccion</th>
+                <th>Documentos</th>
+                <th>Rellenar</th>
+            </tr>
+            <tr *ngFor="let os of Ordenes; let i= index">
+                <td>{{i + 1}}</td>
+                <td>{{os.FechaDespacho | date:'yyyy-MM-dd'}}</td>
+                <td>{{os.FolioCliente}}</td>
+                <td>{{os.NombreDestino}}</td>
+                <td>{{os.Direccion}}</td>
+                <td>
+                    <div *ngFor="let doc of os.Documentos">
+                        <documento [documento]="doc"></documento>
+                    </div>
+                </td>
+                <td>
+                    <a class="label label-default">Todos</a>
+                    <a class="label label-default" (click)="goToOrden(os.FolioCliente)">
+                    Seleccionar 
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+</div>

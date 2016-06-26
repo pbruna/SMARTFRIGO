@@ -1,0 +1,55 @@
+<div class="container" @flyInOut="'in'">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <titulo [titulo]="orden?.NombreDestino"></titulo>
+        </div>
+
+        <div *ngIf="orden" class="panel-body row">
+            <div class="col-md-6 col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Datos de la Orden
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><b>Fecha: </b>{{orden.FechaDespacho | date: 'mediumDate'}}</li>
+                            <li class="list-group-item"><b>Despacho: </b>{{orden.Direccion}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Documentos para el despacho
+                    </div>
+                    <div class="panel-body">
+                        <documento *ngFor="let doc of orden?.Documentos" [documento]="doc"></documento>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table *ngIf="orden" class="table table-striped table-hover table-condensed">
+            <tr>
+                <th><input type="checkbox" [(ngModel)]="check" (click)="checkAll(!check)" /> #</th>
+                <th>Nombre</th>
+                <th>Bultos <br>Ped.</th>
+                <th>Bultos <br>Sel.</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+            </tr>
+            <tr *ngFor="let it of orden.Items; let i= index">
+                <td><label><input type="checkbox" [(ngModel)]="it.checked" (click)="checkItem(i, $event)" /> {{i + 1}}</label></td>
+                <td>{{it.NombreRef}}</td>
+                <td class="text-right">{{it.Cantidad}}</td>
+                <td class="text-right">{{it.Bultos?.length}}</td>
+                <td class="text-right">{{it.getCantidad() | number: '1.2-2'}}</td>
+                <td>{{it.UnidadLog.TipoUnidad == 1 ? 'Kg' : (it.UnidadLog.NomUnidad || 'Uni')}}</td>
+            </tr>
+        </table>
+        <div *ngIf="orden" class="panel-body">
+            <button class="btn btn-primary btn-lg" role="button">Ingresar Selección a SII</button>
+        </div>
+    </div>
+</div>
