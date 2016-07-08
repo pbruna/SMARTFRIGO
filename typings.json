@@ -2,6 +2,7 @@
   "globalDependencies": {
     "chrome": "registry:dt/chrome#0.0.0+20160509083626",
     "core-js": "registry:dt/core-js#0.0.0+20160317120654",
+    "filesystem": "registry:dt/filesystem#0.0.0+20160316155526",
     "jasmine": "registry:dt/jasmine#2.2.0+20160505161446",
     "jquery": "registry:dt/jquery#1.10.0+20160704162008",
     "jqueryui": "registry:dt/jqueryui#1.9.0+20160627030821",
