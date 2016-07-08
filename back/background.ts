@@ -37,7 +37,6 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
 
 
 
-
 function SubirPDFaALMAFRIGO(message, func: Function) {
     message.tabId = parseInt(message.tabId);
     var xhrp = new XMLHttpRequest()
