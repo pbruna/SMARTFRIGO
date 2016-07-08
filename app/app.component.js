@@ -9,25 +9,40 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var router_deprecated_1 = require('@angular/router-deprecated');
 var buscar_ordenes_component_1 = require('./componentes/buscar-ordenes.component');
 var orden_component_1 = require('./componentes/orden.component');
 var orden_service_1 = require('./servicios/orden.service');
+var tmp = 1000;
 var AppComponent = (function () {
     function AppComponent() {
-        this.title = 'SMARTFRIGO';
+        this.showO = false;
     }
+    AppComponent.prototype.SeleccionarOrden = function (os) {
+        this.orden = os;
+        this.showO = true;
+    };
     AppComponent = __decorate([
         core_1.Component({
             selector: 'smart-frigo',
-            template: '<router-outlet></router-outlet>',
-            directives: [router_deprecated_1.ROUTER_DIRECTIVES, buscar_ordenes_component_1.BuscarOrdenesComponent],
-            providers: [router_deprecated_1.ROUTER_PROVIDERS, orden_service_1.OrdenService]
-        }),
-        router_deprecated_1.RouteConfig([
-            { path: '/:estado', name: 'BuscarOrden', component: buscar_ordenes_component_1.BuscarOrdenesComponent, useAsDefault: true },
-            { path: '/orden/:folio', name: 'OrdenDetail', component: orden_component_1.OrdenComponent }
-        ]), 
+            template: "<div>\n    <div class=\"divClass\" @flyLeft=\"showO ? 'void' : 'in' \" >\n        <buscar-ordenes (onSelectOrden)=\"SeleccionarOrden($event)\"></buscar-ordenes>\n    </div>\n    <div class=\"divClass\" @flyRight=\"'in'\" *ngIf=\"showO\"><orden [orden]=\"orden\" (volver)=\"showO = false\"></orden></div>\n  </div>",
+            directives: [buscar_ordenes_component_1.BuscarOrdenesComponent, orden_component_1.OrdenComponent],
+            providers: [orden_service_1.OrdenService],
+            styles: ["\n        .divClass {\n            position: fixed;\n            top: 0px;\n            width: 100%;\n            height: 100%;\n            overflow-y: auto;\n        }\n    "],
+            animations: [
+                core_1.trigger('flyLeft', [
+                    core_1.state('in', core_1.style({ transform: 'translateX(0)' })),
+                    core_1.transition('void => *', [core_1.style({ transform: 'translateX(-100%)' }), core_1.animate(tmp)]),
+                    core_1.state('void', core_1.style({ transform: 'translateX(-100%)' })),
+                    core_1.transition('* => void', [core_1.style({ transform: 'translateX(0)' }), core_1.animate(tmp)]),
+                ]),
+                core_1.trigger('flyRight', [
+                    core_1.state('in', core_1.style({ transform: 'translateX(0)' })),
+                    core_1.transition('void => *', [core_1.style({ transform: 'translateX(100%)' }), core_1.animate(tmp)]),
+                    core_1.state('void', core_1.style({ transform: 'translateX(100%)' })),
+                    core_1.transition('* => void', [core_1.style({ transform: 'translateX(0)' }), core_1.animate(tmp)]),
+                ])
+            ]
+        }), 
         __metadata('design:paramtypes', [])
     ], AppComponent);
     return AppComponent;

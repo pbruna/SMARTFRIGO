@@ -1,7 +1,7 @@
-<div class="container" @flyInOut="'in'">
+<div class="container-fluid">
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <titulo titulo="Burcar Órdenes de Salida"></titulo>
+            <titulo titulo="Burcar Órdenes de Salida" [showvolver]="false"></titulo>
         </div>
         <div class="panel-body">
             <span>Ver Órdenes</span>
@@ -13,6 +13,8 @@
             <span *ngIf="Estado == '-1'">
                 <input type="number" [(ngModel)] = "Folio" placeholder="Ej.: 235" />
                 <input type="button" (click) = "BuscarPorFolio(Folio)" value="Buscar Orden" />
+                <img *ngIf="ShowPrgFolio" src="./images/floating_rays.gif" alt="Cargando" height="20">
+
             </span>
 
         </div>
@@ -43,8 +45,8 @@
                     </div>
                 </td>
                 <td>
-                    <a class="label label-default">Todos</a>
-                    <a class="label label-default" (click)="goToOrden(os.FolioCliente)">
+                    <a class="label label-default" (click)="seleccionarOrden(os)">Todos</a>
+                    <a class="label label-default" (click)="goToOrden(os)">
                     Seleccionar 
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
@@ -52,5 +54,9 @@
 
             </tr>
         </table>
+    </div>
+
+    <div class="text-center">
+        <img *ngIf="!Ordenes" src="./images/floating_rays.gif" alt="Cargando">
     </div>
 </div>

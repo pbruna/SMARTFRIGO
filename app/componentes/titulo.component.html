@@ -1,6 +1,6 @@
 <div class="row">
     <h3 class="col-md-6 col-sm-6 col-xs-6">
-        <a title="Volver" class='label label-default' (click)="goBack()" *ngIf="showBackButton()">
+        <a *ngIf="showVolver" title="Volver" class='label label-default' (click)="volver.emit()">
             <span class="glyphicon glyphicon-chevron-left"></span>
         </a>
         <span class="label">{{titulo | uppercase}}</span>

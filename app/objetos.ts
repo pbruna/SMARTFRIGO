@@ -11,6 +11,8 @@ export class OrdenDeSalida {
     Items: ItemDespacho[];
     Documentos: Documento[];
 
+    Cliente: Cliente
+
     NumDocto: number;
     NombreDocto: string;
 
@@ -24,6 +26,11 @@ export class OrdenDeSalida {
         return '';
     }
 
+    OnInit = function () {
+        this.FechaIngreso = new Date(this.FechaIngreso);
+        this.FechaDespacho = new Date(this.FechaDespacho);
+    }
+
 }
 export enum EstadosOrden { Ingresada, Cerrada, Eliminada, Preparada, Editandose };
 
@@ -35,6 +42,7 @@ export class ItemDespacho {
     Cantidad: number;
     Bultos: Bulto[];
     checked: boolean;
+    Precio: number
 
     getCantidad(): number {
         if (!this.Bultos) return this.Cantidad * (this.UnidadLog.Unidades || 1);
@@ -74,6 +82,8 @@ export class UnidadLogistica {
     TipoUnidad: number;
     NomUnidad: string;
     Impuesto: string;
+    Codigo: string;
+    Precio: number
 
 }
 
@@ -81,4 +91,70 @@ export class Documento {
     Id: string;
     IdOrden: string;
     Nombre: string;
+}
+
+export class MinDTE {
+    RUT: string
+    RUT_DV: string
+    direccion: string
+    vencimiento: string
+    emision: string
+    condicion: string
+    retenedorIVACarne: boolean
+    soloTraslado: boolean
+    items: MinDTEItem[];
+
+    loadFromOrden(orden: OrdenDeSalida, itms: ItemDespacho[]) {
+        let f = new Date(orden.FechaDespacho.getTime());
+        this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+        this.emision = orden.FechaDespacho.toISOString();
+        this.condicion = orden.Cliente.Condicion;
+        this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
+        this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
+        this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
+
+        let totBultos = 0;
+        if (!itms) itms = orden.Items;
+        this.items = [];
+        itms.forEach(itm => {
+            let mdi = new MinDTEItem();
+            mdi.loadFromItem(itm)
+            this.items.push(mdi)
+            totBultos += itm.Bultos ? itm.Bultos.length : itm.Cantidad;
+        })
+        this.items.slice(-1)[0].descripcion += '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
+    }
+
+}
+
+export class MinDTEItem {
+    cantidad: number
+    descripcion: string
+    codigo: string
+    nombre: string
+    precio: number
+    tipoCod: string
+    unidad: string
+    impuesto: string
+
+
+    loadFromItem(i: ItemDespacho) {
+        if (!i.UnidadLog.Unidades || i.UnidadLog.Unidades == 0) i.UnidadLog.Unidades = 1;
+
+        this.cantidad = i.UnidadLog.Unidades * i.getCantidad()
+        this.descripcion = 'Item en ' + i.Bultos.length + ' bultos'
+        this.codigo = i.UnidadLog.Codigo
+        this.nombre = i.UnidadLog.Descripcion ? i.UnidadLog.Descripcion : i.UnidadLog.Nombre
+        this.precio = i.Precio ? i.Precio : i.UnidadLog.Precio
+        this.tipoCod = i.UnidadLog.Codigo ? 'INT' : null
+        this.unidad = i.UnidadLog.TipoUnidad == 1 ? 'Kg' : (i.UnidadLog.NomUnidad || 'Uni.')
+        this.impuesto = i.UnidadLog.Impuesto
+    }
+}
+
+export class Cliente {
+    Condicion: string
+    RUT: string
+    EsRet5PorCarne: boolean
+    Plazo: number
 }

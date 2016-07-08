@@ -1,5 +1,4 @@
-import { Component, OnInit, trigger, state, style, transition, animate } from '@angular/core';
-import { RouteParams, ROUTER_PROVIDERS, ROUTER_DIRECTIVES, Router } from '@angular/router-deprecated';
+import { Component, OnInit, Output, EventEmitter, trigger } from '@angular/core';
 import { OrdenDeSalida, EstadosOrden } from '../objetos';
 import { OrdenService } from '../servicios/orden.service';
 import { DocumentoComponent } from './documento.component';
@@ -9,46 +8,57 @@ import { TituloComponent } from './titulo.component'
 @Component({
   selector: 'buscar-ordenes',
   templateUrl: './app/componentes/buscar-ordenes.component.html',
-  directives: [ROUTER_DIRECTIVES, DocumentoComponent, TituloComponent],
-  animations: [
-    trigger('flyInOut', [
-      state('in', style({ transform: 'translateX(0)' })),
-      transition('void <=> *', [style({ transform: 'translateX(-100%)' }), animate(10000)])
-    ])
-  ]
+  directives: [DocumentoComponent, TituloComponent]
 })
 export class BuscarOrdenesComponent implements OnInit {
   Ordenes: OrdenDeSalida[];
   Estado: EstadosOrden;
-  EstTras: string;
+  ShowPrgFolio = false;
+  @Output("onSelectOrden") onSelectOrden: EventEmitter<OrdenDeSalida> = new EventEmitter();
 
   constructor(
-    private ordenService: OrdenService,
-    private routeParams: RouteParams,
-    private router: Router
+    private ordenService: OrdenService
   ) { }
 
   goToEstado(estado: EstadosOrden) {
     if (estado == -1) return;
-    this.router.navigate(['BuscarOrden', { estado: EstadosOrden[estado] }]);
+    this.Ordenes = null;
+    this.ordenService.getByEstado(this.Estado)
+      .then(ods => this.Ordenes = ods);
+
   }
 
   BuscarPorFolio(folio: number) {
-    this.Ordenes = [];
-    this.goToOrden(folio)
+    this.ShowPrgFolio = true
+    this.ordenService.getByFolioCliente(folio)
+      .then(os => {
+        this.goToOrden(os);
+        this.ShowPrgFolio = false;
+      })
+      .catch(ev => this.ShowPrgFolio = false);
   }
 
-  goToOrden(folio: number) {
-    this.router.navigate(['OrdenDetail', { folio: folio }]);
+  goToOrden(orden: OrdenDeSalida) {
+    this.onSelectOrden.emit(orden)
+  }
+
+  seleccionarOrden(orden: OrdenDeSalida) {
+    let osv = this.ordenService
+    let fun = function (os: OrdenDeSalida) {
+      if (os.Items.length > 10) this.goToOrden(orden);
+      else osv.insertOrdenEnFormDTE(orden, orden.Items);
+    }
+    if (!orden.Items) this.ordenService.getItemsById(orden.Id)
+      .then(itm => {
+        orden.Items = itm;
+        fun(orden);
+      })
+    else fun(orden);
   }
 
   ngOnInit() {
-    if (this.routeParams.get('estado') !== null && this.routeParams.get('estado') != '') {
-      this.Estado = EstadosOrden[this.routeParams.get('estado')];
-    } else this.Estado = EstadosOrden.Preparada;
-
-    this.ordenService.getByEstado(this.Estado)
-      .then(ods => this.Ordenes = ods);
+    this.Estado = EstadosOrden.Preparada;
+    this.goToEstado(this.Estado);
   }
 
 }

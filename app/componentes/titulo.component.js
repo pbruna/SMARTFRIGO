@@ -11,19 +11,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var TituloComponent = (function () {
     function TituloComponent() {
+        this.volver = new core_1.EventEmitter();
     }
-    TituloComponent.prototype.goBack = function () {
-        window.history.back();
-    };
-    TituloComponent.prototype.showBackButton = function () { return window.history.length > 1; };
     __decorate([
         core_1.Input(), 
         __metadata('design:type', String)
     ], TituloComponent.prototype, "titulo", void 0);
+    __decorate([
+        core_1.Output(), 
+        __metadata('design:type', core_1.EventEmitter)
+    ], TituloComponent.prototype, "volver", void 0);
+    __decorate([
+        core_1.Input('showvolver'), 
+        __metadata('design:type', Boolean)
+    ], TituloComponent.prototype, "showVolver", void 0);
     TituloComponent = __decorate([
         core_1.Component({
             selector: 'titulo',
-            templateUrl: './app/componentes/titulo.component.html',
+            templateUrl: './app/componentes/titulo.component.html'
         }), 
         __metadata('design:paramtypes', [])
     ], TituloComponent);

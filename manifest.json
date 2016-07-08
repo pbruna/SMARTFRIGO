@@ -1,0 +1,56 @@
+{
+	"manifest_version": 2,
+	"name": "SMARTFRIGO",
+	"description": "Aplicacion de soporte para ALMAFRIGO",
+	"version": "2.0.0.0",
+	"icons": {
+		"128": "images/IconoAlmafrigo128.png",
+		"48": "images/IconoAlmafrigo48.png",
+		"16": "images/IconoAlmafrigo16.png"
+	},
+	"page_action": {
+		"default_icon": {
+			"38": "images/IconoAlmafrigo38.png"
+		},
+		"default_popup": "index.html"
+	},
+	"background": {
+		"scripts": [
+			"back/background.js"
+		]
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi*"
+			],
+			"js": [
+				"node_modules/jquery/dist/jquery.min.js",
+				"back/context-FormDTE.js"
+			]
+		},
+		{
+			"matches": [
+				"https://www1.sii.cl/cgi-bin/Portal001/mipeSendXML.cgi*"
+			],
+			"js": [
+				"node_modules/jquery/dist/jquery.min.js",
+				"node_modules/jquery-ui/jquery-ui.js",
+				"back/context-DTEEmitido.js"
+			],
+			"css": [
+				"node_modules/jquery-ui/themes/base/minified/jquery-ui.min.css"
+			]
+		}
+	],
+	"permissions": [
+		"storage",
+		"tabs",
+		"http://www.almafrigo.cl/*",
+		"http://localhost:51346/*",
+		"https://www1.sii.cl/cgi-bin/Portal001/*",
+		"webRequest",
+		"webRequestBlocking"
+	],
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+/// <reference path="../references/chrome.d.ts" />
 var core_1 = require('@angular/core');
 var http_1 = require('@angular/http');
 require('rxjs/add/operator/toPromise');
@@ -59,6 +60,29 @@ var OrdenService = (function () {
             return itms;
         })
             .catch(function (reason) { return reason; });
+    };
+    OrdenService.prototype.setCliente = function (orden) {
+        if (!orden.IdCliente || orden.IdCliente == '00000000-0000-0000-0000-000000000000')
+            return Promise.resolve(orden);
+        return this.http.get(Globals.webServiceURL + '/OrdenesDeSalida_GetCliente?IdCliente=' + orden.IdCliente, {
+            withCredentials: true
+        }).toPromise()
+            .then(function (cli) {
+            orden.Cliente = cli.json();
+            return orden;
+        })
+            .catch(function (reason) { return reason; });
+    };
+    OrdenService.prototype.insertOrdenEnFormDTE = function (orden, itms) {
+        if (!itms)
+            itms = orden.Items;
+        this.setCliente(orden)
+            .then(function (o) {
+            var dte = new objetos_1.MinDTE();
+            dte.loadFromOrden(orden, itms);
+            chrome.runtime.sendMessage({ op: 'RellenarSIIForm', dte: dte, NumOrden: orden.Numero });
+            window.close();
+        });
     };
     OrdenService = __decorate([
         core_1.Injectable(), 

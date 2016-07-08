@@ -9,52 +9,69 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var router_deprecated_1 = require('@angular/router-deprecated');
 var objetos_1 = require('../objetos');
 var orden_service_1 = require('../servicios/orden.service');
 var documento_component_1 = require('./documento.component');
 var titulo_component_1 = require('./titulo.component');
 var BuscarOrdenesComponent = (function () {
-    function BuscarOrdenesComponent(ordenService, routeParams, router) {
+    function BuscarOrdenesComponent(ordenService) {
         this.ordenService = ordenService;
-        this.routeParams = routeParams;
-        this.router = router;
+        this.ShowPrgFolio = false;
+        this.onSelectOrden = new core_1.EventEmitter();
     }
     BuscarOrdenesComponent.prototype.goToEstado = function (estado) {
+        var _this = this;
         if (estado == -1)
             return;
-        this.router.navigate(['BuscarOrden', { estado: objetos_1.EstadosOrden[estado] }]);
-    };
-    BuscarOrdenesComponent.prototype.BuscarPorFolio = function (folio) {
-        this.Ordenes = [];
-        this.goToOrden(folio);
-    };
-    BuscarOrdenesComponent.prototype.goToOrden = function (folio) {
-        this.router.navigate(['OrdenDetail', { folio: folio }]);
-    };
-    BuscarOrdenesComponent.prototype.ngOnInit = function () {
-        var _this = this;
-        if (this.routeParams.get('estado') !== null && this.routeParams.get('estado') != '') {
-            this.Estado = objetos_1.EstadosOrden[this.routeParams.get('estado')];
-        }
-        else
-            this.Estado = objetos_1.EstadosOrden.Preparada;
+        this.Ordenes = null;
         this.ordenService.getByEstado(this.Estado)
             .then(function (ods) { return _this.Ordenes = ods; });
     };
+    BuscarOrdenesComponent.prototype.BuscarPorFolio = function (folio) {
+        var _this = this;
+        this.ShowPrgFolio = true;
+        this.ordenService.getByFolioCliente(folio)
+            .then(function (os) {
+            _this.goToOrden(os);
+            _this.ShowPrgFolio = false;
+        })
+            .catch(function (ev) { return _this.ShowPrgFolio = false; });
+    };
+    BuscarOrdenesComponent.prototype.goToOrden = function (orden) {
+        this.onSelectOrden.emit(orden);
+    };
+    BuscarOrdenesComponent.prototype.seleccionarOrden = function (orden) {
+        var osv = this.ordenService;
+        var fun = function (os) {
+            if (os.Items.length > 10)
+                this.goToOrden(orden);
+            else
+                osv.insertOrdenEnFormDTE(orden, orden.Items);
+        };
+        if (!orden.Items)
+            this.ordenService.getItemsById(orden.Id)
+                .then(function (itm) {
+                orden.Items = itm;
+                fun(orden);
+            });
+        else
+            fun(orden);
+    };
+    BuscarOrdenesComponent.prototype.ngOnInit = function () {
+        this.Estado = objetos_1.EstadosOrden.Preparada;
+        this.goToEstado(this.Estado);
+    };
+    __decorate([
+        core_1.Output("onSelectOrden"), 
+        __metadata('design:type', core_1.EventEmitter)
+    ], BuscarOrdenesComponent.prototype, "onSelectOrden", void 0);
     BuscarOrdenesComponent = __decorate([
         core_1.Component({
             selector: 'buscar-ordenes',
             templateUrl: './app/componentes/buscar-ordenes.component.html',
-            directives: [router_deprecated_1.ROUTER_DIRECTIVES, documento_component_1.DocumentoComponent, titulo_component_1.TituloComponent],
-            animations: [
-                core_1.trigger('flyInOut', [
-                    core_1.state('in', core_1.style({ transform: 'translateX(0)' })),
-                    core_1.transition('void <=> *', [core_1.style({ transform: 'translateX(-100%)' }), core_1.animate(10000)])
-                ])
-            ]
+            directives: [documento_component_1.DocumentoComponent, titulo_component_1.TituloComponent]
         }), 
-        __metadata('design:paramtypes', [orden_service_1.OrdenService, router_deprecated_1.RouteParams, router_deprecated_1.Router])
+        __metadata('design:paramtypes', [orden_service_1.OrdenService])
     ], BuscarOrdenesComponent);
     return BuscarOrdenesComponent;
 }());

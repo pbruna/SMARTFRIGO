@@ -4,6 +4,10 @@ var OrdenDeSalida = (function () {
         this.ToDTE = function () {
             return '';
         };
+        this.OnInit = function () {
+            this.FechaIngreso = new Date(this.FechaIngreso);
+            this.FechaDespacho = new Date(this.FechaDespacho);
+        };
     }
     return OrdenDeSalida;
 }());
@@ -59,4 +63,55 @@ var Documento = (function () {
     return Documento;
 }());
 exports.Documento = Documento;
+var MinDTE = (function () {
+    function MinDTE() {
+    }
+    MinDTE.prototype.loadFromOrden = function (orden, itms) {
+        var _this = this;
+        var f = new Date(orden.FechaDespacho.getTime());
+        this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+        this.emision = orden.FechaDespacho.toISOString();
+        this.condicion = orden.Cliente.Condicion;
+        this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
+        this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
+        this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
+        var totBultos = 0;
+        if (!itms)
+            itms = orden.Items;
+        this.items = [];
+        itms.forEach(function (itm) {
+            var mdi = new MinDTEItem();
+            mdi.loadFromItem(itm);
+            _this.items.push(mdi);
+            totBultos += itm.Bultos ? itm.Bultos.length : itm.Cantidad;
+        });
+        this.items.slice(-1)[0].descripcion += '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
+    };
+    return MinDTE;
+}());
+exports.MinDTE = MinDTE;
+var MinDTEItem = (function () {
+    function MinDTEItem() {
+    }
+    MinDTEItem.prototype.loadFromItem = function (i) {
+        if (!i.UnidadLog.Unidades || i.UnidadLog.Unidades == 0)
+            i.UnidadLog.Unidades = 1;
+        this.cantidad = i.UnidadLog.Unidades * i.getCantidad();
+        this.descripcion = 'Item en ' + i.Bultos.length + ' bultos';
+        this.codigo = i.UnidadLog.Codigo;
+        this.nombre = i.UnidadLog.Descripcion ? i.UnidadLog.Descripcion : i.UnidadLog.Nombre;
+        this.precio = i.Precio ? i.Precio : i.UnidadLog.Precio;
+        this.tipoCod = i.UnidadLog.Codigo ? 'INT' : null;
+        this.unidad = i.UnidadLog.TipoUnidad == 1 ? 'Kg' : (i.UnidadLog.NomUnidad || 'Uni.');
+        this.impuesto = i.UnidadLog.Impuesto;
+    };
+    return MinDTEItem;
+}());
+exports.MinDTEItem = MinDTEItem;
+var Cliente = (function () {
+    function Cliente() {
+    }
+    return Cliente;
+}());
+exports.Cliente = Cliente;
 //# sourceMappingURL=objetos.js.map

@@ -9,14 +9,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var router_deprecated_1 = require('@angular/router-deprecated');
+var objetos_1 = require('../objetos');
 var orden_service_1 = require('../servicios/orden.service');
 var documento_component_1 = require('./documento.component');
 var titulo_component_1 = require('./titulo.component');
 var OrdenComponent = (function () {
-    function OrdenComponent(ordenService, routeParams) {
+    function OrdenComponent(ordenService) {
         this.ordenService = ordenService;
-        this.routeParams = routeParams;
+        this.volver = new core_1.EventEmitter();
         this.check = true;
     }
     OrdenComponent.prototype.checkAll = function (bol) {
@@ -39,31 +39,35 @@ var OrdenComponent = (function () {
         else
             this.lastCheck = i;
     };
+    OrdenComponent.prototype.ingresarSeleccion = function () {
+        this.ordenService.insertOrdenEnFormDTE(this.orden, this.orden.Items.filter(function (itm) { return itm.checked; }));
+    };
     OrdenComponent.prototype.ngOnInit = function () {
         var _this = this;
-        if (this.routeParams.get('folio') !== null) {
-            var folio = +this.routeParams.get('folio');
-            this.ordenService.getByFolioCliente(folio)
-                .then(function (os) {
-                _this.orden = os;
-                if (os.Items)
-                    _this.checkAll(_this.check);
+        if (!this.orden.Items)
+            this.ordenService.getItemsById(this.orden.Id)
+                .then(function (itms) {
+                _this.orden.Items = itms;
+                itms.forEach(function (i) { return i.checked = true; });
             });
-        }
+        else
+            this.orden.Items.forEach(function (i) { return i.checked = true; });
     };
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', objetos_1.OrdenDeSalida)
+    ], OrdenComponent.prototype, "orden", void 0);
+    __decorate([
+        core_1.Output(), 
+        __metadata('design:type', core_1.EventEmitter)
+    ], OrdenComponent.prototype, "volver", void 0);
     OrdenComponent = __decorate([
         core_1.Component({
             selector: 'orden',
             templateUrl: './app/componentes/orden.component.html',
             directives: [documento_component_1.DocumentoComponent, titulo_component_1.TituloComponent],
-            animations: [
-                core_1.trigger('flyInOut', [
-                    core_1.state('in', core_1.style({ transform: 'translateX(0)' })),
-                    core_1.transition('void <=> *', [core_1.style({ transform: 'translateX(100%)' }), core_1.animate(10000)])
-                ])
-            ]
         }), 
-        __metadata('design:paramtypes', [orden_service_1.OrdenService, router_deprecated_1.RouteParams])
+        __metadata('design:paramtypes', [orden_service_1.OrdenService])
     ], OrdenComponent);
     return OrdenComponent;
 }());

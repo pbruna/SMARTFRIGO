@@ -3,7 +3,7 @@ import { Headers, Http } from '@angular/http';
 
 import 'rxjs/add/operator/toPromise';
 
-import { OrdenDeSalida, EstadosOrden, ItemDespacho, Bulto} from '../objetos';
+import { OrdenDeSalida, EstadosOrden, ItemDespacho, Bulto, MinDTE} from '../objetos';
 import Globals = require('../globals');
 
 @Injectable()
@@ -31,7 +31,7 @@ export class OrdenService {
                 itms.forEach(function (i: ItemDespacho) {
                     if (i.Bultos) i.Bultos.forEach(function (b: Bulto) {
                         b.UnidadLogistica = i.UnidadLog;
-                    }) 
+                    })
                 })
                 return os;
             })
@@ -48,11 +48,38 @@ export class OrdenService {
                 itms.forEach(function (i: ItemDespacho) {
                     if (i.Bultos) i.Bultos.forEach(function (b: Bulto) {
                         b.UnidadLogistica = i.UnidadLog;
-                    }) 
+                    })
                 })
                 return itms;
             })
             .catch(reason => reason)
+    }
+
+    setCliente(orden: OrdenDeSalida): Promise<OrdenDeSalida> {
+        if (!orden.IdCliente || orden.IdCliente == '00000000-0000-0000-0000-000000000000')
+            return Promise.resolve<OrdenDeSalida>(orden);
+
+        return this.http.get(Globals.webServiceURL + '/OrdenesDeSalida_GetCliente?IdCliente=' + orden.IdCliente, {
+            withCredentials: true
+        }).toPromise()
+            .then(cli => {
+                orden.Cliente = cli.json();
+                return orden;
+            })
+            .catch(reason => reason)
+
+    }
+
+    insertOrdenEnFormDTE(orden: OrdenDeSalida, itms: ItemDespacho[]) {
+        if (!itms) itms = orden.Items;
+
+        this.setCliente(orden)
+        .then(o => {
+            let dte = new MinDTE();
+            dte.loadFromOrden(orden, itms);
+            chrome.runtime.sendMessage({ op: 'RellenarSIIForm', dte: dte, NumOrden: orden.Numero });
+            window.close();
+        })
     }
 }
 

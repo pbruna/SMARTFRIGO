@@ -1,16 +1,12 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input, Output, EventEmitter} from '@angular/core';
+
 
 @Component({
     selector: 'titulo',
-    templateUrl: './app/componentes/titulo.component.html',
+    templateUrl: './app/componentes/titulo.component.html'
 })
 export class TituloComponent {
     @Input() titulo: string;
-
-    goBack() {
-        window.history.back();
-    }
-
-    showBackButton(): boolean { return window.history.length > 1; }
-
+    @Output() volver: EventEmitter<any> = new EventEmitter<any>()
+    @Input('showvolver') showVolver: boolean
 }

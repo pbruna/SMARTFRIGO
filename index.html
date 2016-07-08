@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>SMARTFRIGO APP</title>
+    <title>SMARTFRIGO</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="/">
@@ -15,9 +15,7 @@
     <script src="node_modules/systemjs/dist/system.src.js"></script>
     <!-- 2. Configure SystemJS -->
     <script src="systemjs.config.js"></script>
-    <script>
-      System.import('app').catch(function(err){ console.error(err); });
-    </script>
+    <script src="index.js"></script>
 
     <script src="node_modules/jquery/dist/jquery.min.js" ></script>
     
@@ -26,7 +24,7 @@
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js" ></script>
   </head>
   <!-- 3. Display the application -->
-  <body>
+  <body style="width: 800px; height: 600px"> 
     <smart-frigo>Cargando...</smart-frigo>
   </body>
 </html>

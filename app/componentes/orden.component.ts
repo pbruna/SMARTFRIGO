@@ -1,30 +1,21 @@
-import { Component, EventEmitter, OnInit, Output, trigger, state, style, transition, animate} from '@angular/core';
-import { RouteParams } from '@angular/router-deprecated';
+import { Component, EventEmitter, OnInit, Input, Output} from '@angular/core';
 import { OrdenDeSalida, EstadosOrden } from '../objetos';
 import { OrdenService } from '../servicios/orden.service';
-import { DocumentoComponent } from './documento.component'
-import { TituloComponent } from './titulo.component'
+import { DocumentoComponent } from './documento.component';
+import { TituloComponent } from './titulo.component';
 
 @Component({
     selector: 'orden',
     templateUrl: './app/componentes/orden.component.html',
     directives: [DocumentoComponent, TituloComponent],
-    animations: [
-        trigger('flyInOut', [
-            state('in', style({ transform: 'translateX(0)' })),
-            transition('void <=> *', [style({ transform: 'translateX(100%)' }), animate(10000)])
-        ])
-    ]
 })
 export class OrdenComponent implements OnInit {
-    orden: OrdenDeSalida;
+    @Input() orden: OrdenDeSalida;
+    @Output() volver: EventEmitter<any> = new EventEmitter<any>()
     check = true;
     lastCheck: number;
 
-    constructor(
-        private ordenService: OrdenService,
-        private routeParams: RouteParams
-    ) { }
+    constructor(private ordenService: OrdenService) { }
 
     checkAll(bol: boolean) {
         this.orden.Items.forEach(it => it.checked = bol);
@@ -45,15 +36,21 @@ export class OrdenComponent implements OnInit {
         } else this.lastCheck = i;
     }
 
-    ngOnInit() {
-        if (this.routeParams.get('folio') !== null) {
-            let folio = +this.routeParams.get('folio');
-            this.ordenService.getByFolioCliente(folio)
-                .then(os => {
-                    this.orden = os;
-                    if (os.Items) this.checkAll(this.check);
-                });
-        }
+    ingresarSeleccion() {
+        this.ordenService.insertOrdenEnFormDTE(this.orden, this.orden.Items.filter(itm => { return itm.checked }));
     }
+
+    ngOnInit() {
+        if (!this.orden.Items)
+            this.ordenService.getItemsById(this.orden.Id)
+                .then(itms => {
+                    this.orden.Items = itms
+                    itms.forEach(i => i.checked = true)
+                });
+        else this.orden.Items.forEach(i => i.checked = true)
+    }
+
+
+
 
 }
