@@ -44,9 +44,14 @@ export class ItemDespacho {
     checked: boolean;
     Precio: number
 
-    getCantidad(): number {
-        if (!this.Bultos) return this.Cantidad * (this.UnidadLog.Unidades || 1);
-        return this.Bultos.reduce((vp, b) => vp += b.Cantidad(), 0);
+    getCantidad(estado: EstadosOrden): number {
+        switch (estado) {
+            case EstadosOrden.Preparada, EstadosOrden.Cerrada:
+                return this.Bultos.reduce((vp, b) => vp += b.Cantidad(), 0);
+            default:
+                if (this.Bultos.length == 0) return this.Cantidad * (this.UnidadLog.Unidades || 1);
+                return this.Bultos.reduce((vp, b) => vp += b.Cantidad(), 0);
+        }
     }
 
 
@@ -118,9 +123,11 @@ export class MinDTE {
         this.items = [];
         itms.forEach(itm => {
             let mdi = new MinDTEItem();
-            mdi.loadFromItem(itm)
-            this.items.push(mdi)
-            totBultos += itm.Bultos ? itm.Bultos.length : itm.Cantidad;
+            mdi.loadFromItem(itm, orden.Estado)
+            if (mdi.cantidad !== 0) {
+                this.items.push(mdi)
+                totBultos += mdi.bultos
+            }
         })
         this.items.slice(-1)[0].descripcion += '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
     }
@@ -136,19 +143,25 @@ export class MinDTEItem {
     tipoCod: string
     unidad: string
     impuesto: string
+    bultos: number
 
 
-    loadFromItem(i: ItemDespacho) {
+    loadFromItem(i: ItemDespacho, estado: EstadosOrden) {
         if (!i.UnidadLog.Unidades || i.UnidadLog.Unidades == 0) i.UnidadLog.Unidades = 1;
 
-        this.cantidad = i.UnidadLog.Unidades * i.getCantidad()
-        this.descripcion = 'Item en ' + i.Bultos.length + ' bultos'
+        this.cantidad = i.getCantidad(estado)
+        this.descripcion = 'Item en ' + (i.Bultos.length > 0 ? i.Bultos.length : i.Cantidad) + ' bultos'
         this.codigo = i.UnidadLog.Codigo
         this.nombre = i.UnidadLog.Descripcion ? i.UnidadLog.Descripcion : i.UnidadLog.Nombre
         this.precio = i.Precio ? i.Precio : i.UnidadLog.Precio
+        if (this.cantidad < 1 && this.cantidad > 0) {
+            this.cantidad *= 1000;
+            this.precio /= 1000;
+        }
         this.tipoCod = i.UnidadLog.Codigo ? 'INT' : null
-        this.unidad = i.UnidadLog.TipoUnidad == 1 ? 'Kg' : (i.UnidadLog.NomUnidad || 'Uni.')
+        this.unidad = i.UnidadLog.TipoUnidad == 1 && i.Bultos.length > 0 ? 'Kg' : (i.UnidadLog.NomUnidad || 'Uni.')
         this.impuesto = i.UnidadLog.Impuesto
+        this.bultos = i.Bultos.length > 0 ? i.Bultos.length : i.Cantidad
     }
 }
 

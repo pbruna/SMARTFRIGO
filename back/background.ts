@@ -3,6 +3,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0) chrome.pageAction.show(tabId);
 });
 
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     switch (message.op) {
         case 'RellenarSIIForm': //Enviado desde el popup

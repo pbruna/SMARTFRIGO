@@ -12,28 +12,47 @@ import { TituloComponent } from './titulo.component';
 export class OrdenComponent implements OnInit {
     @Input() orden: OrdenDeSalida;
     @Output() volver: EventEmitter<any> = new EventEmitter<any>()
-    check = true;
     lastCheck: number;
+    cantCheck = 0;
 
     constructor(private ordenService: OrdenService) { }
 
-    checkAll(bol: boolean) {
-        this.orden.Items.forEach(it => it.checked = bol);
-        this.lastCheck = undefined;
+    checkFirst10() {
+        this.orden.Items.forEach(i => {
+            if (this.cantCheck < 10) {
+                i.checked = true
+                this.cantCheck++;
+            }
+        })
     }
 
     checkItem(i: number, ev: any) {
         if (!isNaN(this.lastCheck) && ev.shiftKey) {
-            let paso = 1
-            if (this.lastCheck < i) paso = -1;
-            let k = paso + i;
-            this.orden.Items[this.lastCheck].checked = !this.orden.Items[i].checked;
-            while (this.lastCheck != k) {
-                this.orden.Items[k].checked = !this.orden.Items[i].checked;
+            let paso = -1
+            if (this.lastCheck < i) paso = 1;
+            let k = this.lastCheck + paso;
+            if (this.orden.Items[i].checked) this.cantCheck--;
+            else this.cantCheck++;
+
+            while (i != k) {
+                if (this.orden.Items[k].checked !== !this.orden.Items[i].checked) {
+                    if (this.orden.Items[k].checked) this.cantCheck--;
+                    else this.cantCheck++;
+                }
+                if (this.cantCheck < 11)
+                    this.orden.Items[k].checked = !this.orden.Items[i].checked;
+                else {
+                    this.cantCheck--;
+                    break;
+                }
                 k += paso;
             }
-            this.lastCheck = i;
-        } else this.lastCheck = i;
+
+        } else {
+            this.cantCheck += this.orden.Items[i].checked ? -1 : 1;
+        }
+        this.lastCheck = i;
+
     }
 
     ingresarSeleccion() {
@@ -45,9 +64,9 @@ export class OrdenComponent implements OnInit {
             this.ordenService.getItemsById(this.orden.Id)
                 .then(itms => {
                     this.orden.Items = itms
-                    itms.forEach(i => i.checked = true)
+                    this.checkFirst10();
                 });
-        else this.orden.Items.forEach(i => i.checked = true)
+        else this.checkFirst10();
     }
 
 

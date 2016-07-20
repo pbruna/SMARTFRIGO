@@ -4,7 +4,7 @@
     var path = require('path');
     var uglify = require('uglify-js2');
     var zip = archiver('zip');
-    var files = ['index.html', 'styles.css', 'manifest.json', 'bundle.js', /(fonts|images|scripts_npm|scripts|back|app).*/,];
+    var files = ['index.html', 'styles.css', 'manifest.json', 'bundle.js', /(fonts|images|scripts_npm|back|app).*/,];
     var exclude = /(map|ts|app\\.*js)$/;
     var root = process.cwd();
     var addCount = 0;

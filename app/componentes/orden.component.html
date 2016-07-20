@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <titulo [titulo]="orden.NombreDestino" (volver)="volver.emit()"  [showvolver]="true"></titulo>
+            <titulo [titulo]="orden.NombreDestino" (volver)="volver.emit()" [showvolver]="true"></titulo>
         </div>
 
         <div class="panel-body row">
@@ -33,7 +33,7 @@
 
         <table *ngIf="orden.Items" class="table table-striped table-hover table-condensed">
             <tr>
-                <th><input type="checkbox" [(ngModel)]="check" (click)="checkAll(!check)" /> #</th>
+                <th>{{cantCheck}}#</th>
                 <th>Nombre</th>
                 <th>Bultos <br>Ped.</th>
                 <th>Bultos <br>Sel.</th>
@@ -41,7 +41,9 @@
                 <th>Unidad</th>
             </tr>
             <tr *ngFor="let it of orden.Items; let i= index">
-                <td><label><input type="checkbox" [(ngModel)]="it.checked" (click)="checkItem(i, $event)" /> {{i + 1}}</label></td>
+                <td><label><input type="checkbox" [(ngModel)]="it.checked" (click)="checkItem(i, $event)" 
+                    [title] = "!it.checked && cantCheck > 9 ? 'El servicio de impuestos internos no acepta más de 10 items' : ''" 
+                    [disabled]="!it.checked && cantCheck > 9"/>{{i + 1}}</label></td>
                 <td>{{it.NombreRef}}</td>
                 <td class="text-right">{{it.Cantidad}}</td>
                 <td class="text-right">{{it.Bultos?.length}}</td>
@@ -53,7 +55,7 @@
             <img *ngIf="!orden.Items" src="./images/floating_rays.gif" alt="Cargando">
         </div>
         <div class="panel-body text-center">
-            <button class="btn btn-primary btn-lg" role="button" (click)= "ingresarSeleccion()">Ingresar Selección a SII</button>
+            <button class="btn btn-primary btn-lg" role="button" (click)="ingresarSeleccion()">Ingresar Selección a SII</button>
         </div>
     </div>
 </div>

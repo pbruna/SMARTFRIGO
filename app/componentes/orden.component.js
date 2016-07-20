@@ -17,27 +17,47 @@ var OrdenComponent = (function () {
     function OrdenComponent(ordenService) {
         this.ordenService = ordenService;
         this.volver = new core_1.EventEmitter();
-        this.check = true;
+        this.cantCheck = 0;
     }
-    OrdenComponent.prototype.checkAll = function (bol) {
-        this.orden.Items.forEach(function (it) { return it.checked = bol; });
-        this.lastCheck = undefined;
+    OrdenComponent.prototype.checkFirst10 = function () {
+        var _this = this;
+        this.orden.Items.forEach(function (i) {
+            if (_this.cantCheck < 10) {
+                i.checked = true;
+                _this.cantCheck++;
+            }
+        });
     };
     OrdenComponent.prototype.checkItem = function (i, ev) {
         if (!isNaN(this.lastCheck) && ev.shiftKey) {
-            var paso = 1;
+            var paso = -1;
             if (this.lastCheck < i)
-                paso = -1;
-            var k = paso + i;
-            this.orden.Items[this.lastCheck].checked = !this.orden.Items[i].checked;
-            while (this.lastCheck != k) {
-                this.orden.Items[k].checked = !this.orden.Items[i].checked;
+                paso = 1;
+            var k = this.lastCheck + paso;
+            if (this.orden.Items[i].checked)
+                this.cantCheck--;
+            else
+                this.cantCheck++;
+            while (i != k) {
+                if (this.orden.Items[k].checked !== !this.orden.Items[i].checked) {
+                    if (this.orden.Items[k].checked)
+                        this.cantCheck--;
+                    else
+                        this.cantCheck++;
+                }
+                if (this.cantCheck < 11)
+                    this.orden.Items[k].checked = !this.orden.Items[i].checked;
+                else {
+                    this.cantCheck--;
+                    break;
+                }
                 k += paso;
             }
-            this.lastCheck = i;
         }
-        else
-            this.lastCheck = i;
+        else {
+            this.cantCheck += this.orden.Items[i].checked ? -1 : 1;
+        }
+        this.lastCheck = i;
     };
     OrdenComponent.prototype.ingresarSeleccion = function () {
         this.ordenService.insertOrdenEnFormDTE(this.orden, this.orden.Items.filter(function (itm) { return itm.checked; }));
@@ -48,10 +68,10 @@ var OrdenComponent = (function () {
             this.ordenService.getItemsById(this.orden.Id)
                 .then(function (itms) {
                 _this.orden.Items = itms;
-                itms.forEach(function (i) { return i.checked = true; });
+                _this.checkFirst10();
             });
         else
-            this.orden.Items.forEach(function (i) { return i.checked = true; });
+            this.checkFirst10();
     };
     __decorate([
         core_1.Input(), 
