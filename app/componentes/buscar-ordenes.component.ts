@@ -14,7 +14,7 @@ export class BuscarOrdenesComponent implements OnInit {
   Ordenes: OrdenDeSalida[];
   Estado: EstadosOrden;
   ShowPrgFolio = false;
-  @Output("onSelectOrden") onSelectOrden: EventEmitter<OrdenDeSalida> = new EventEmitter();
+  @Output("onSelectOrden") onSelectOrden: EventEmitter<OrdenDeSalida> = new EventEmitter<OrdenDeSalida>()
 
   constructor(
     private ordenService: OrdenService

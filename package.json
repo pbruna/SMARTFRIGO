@@ -2,15 +2,16 @@
   "name": "smartfrigo",
   "version": "2.0.0",
   "scripts": {
-    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
+    "start": "npm run copyscripts tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
     "lite": "lite-server",
     "postinstall": "typings install",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "typings": "typings",
-    "build": "npm run copyscripts && tsc && browserify -t browserify-css scripts/index.js | uglifyjs > scripts/bundle.js",
-    "copyscripts": "copyfiles -f node_modules/systemjs/dist/system.js scripts",
-    "zipit": "npm run build && node zipscript.js"
+    "zipit": "npm run build && node packagesScripts/zipscript.js",
+    "build": "npm run tsc && npm run copyscripts && npm run cr_bundle",
+    "cr_bundle": "browserify app/main.js | uglifyjs --screw-ie8 --compress --mangle  > scripts_npm/bundle.js",
+    "copyscripts": "node packagesScripts/copynpmscripts.js"
   },
   "license": "ISC",
   "dependencies": {
@@ -24,6 +25,8 @@
     "@angular/upgrade": "2.0.0-rc.3",
     "archiver": "^1.0.0",
     "bootstrap": "^3.3.6",
+    "copy-dir": "^0.3.0",
+    "copy-files": "^0.1.0",
     "core-js": "^2.4.0",
     "easy-zip": "0.0.4",
     "jquery": "2.2.4",
@@ -32,6 +35,7 @@
     "reflect-metadata": "^0.1.3",
     "rxjs": "5.0.0-beta.6",
     "systemjs": "0.19.27",
+    "uglify-js2": "^2.1.11",
     "zone.js": "^0.6.12"
   },
   "devDependencies": {
