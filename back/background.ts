@@ -1,3 +1,5 @@
+// import { ScanPDF417, ScanPDF417ResultStatus} from './DoScan'
+
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0) chrome.pageAction.show(tabId);
@@ -16,16 +18,22 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         case 'QuienSoy': //Enviado desde contentscript
             sendResponse({ tabId: sender.tab.id });
             break;
-        case 'PruebaSubida':
-            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                if (tabs.length == 0) return;
-                message.tabId = tabs[0].id;
-                chrome.tabs.sendMessage(message.tabId, message);
-            });
-            break;
         case 'SubirPDF':
             SubirPDFaALMAFRIGO(message, sendResponse);
             return true;
+
+        case 'AnalizarPDF':
+            // var sc = new ScanPDF417()
+            // try {
+            //     console.log('enviado a analisis');
+                
+            //     sc.ScanPDF417FromBase64(message.pdf64Base, 1, 3, function (response) {
+            //         sendResponse(response)
+            //     })
+            // } catch (err) {
+            //     sendResponse(err)
+            // }
+            // return true;
     }
 });
 

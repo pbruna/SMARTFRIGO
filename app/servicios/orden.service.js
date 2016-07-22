@@ -9,10 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var http_1 = require('@angular/http');
-require('rxjs/add/operator/toPromise');
+var HttpExtension_1 = require('../HttpExtension');
 var objetos_1 = require('../objetos');
 var Globals = require('../globals');
+require('rxjs/add/operator/toPromise');
 var OrdenService = (function () {
     function OrdenService(http) {
         this.http = http;
@@ -85,7 +85,7 @@ var OrdenService = (function () {
     };
     OrdenService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [http_1.Http])
+        __metadata('design:paramtypes', [HttpExtension_1.CustomHttp])
     ], OrdenService);
     return OrdenService;
 }());

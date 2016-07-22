@@ -35,13 +35,13 @@
 			],
 			"js": [
 				"scripts_npm/jquery.min.js",
-				"scripts_npm/jquery-ui.js",
+				"scripts_npm/jquery-ui.min.js",
 				"back/context-DTEEmitido.js"
 			],
 			"css": [
 				"scripts_npm/jquery-ui.min.css"
 			]
-		}
+		}		
 	],
 	"permissions": [
 		"storage",

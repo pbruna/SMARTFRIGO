@@ -11,7 +11,6 @@
             "bootstrap.min.js": root + '/node_modules/bootstrap/dist/js/bootstrap.min.js',
             "bootstrap.min.css": root + '/node_modules/bootstrap/dist/css/bootstrap.min.css',
             'jquery.min.js': root + '/node_modules/jquery/dist/jquery.min.js',
-            'jquery-ui.js': root + '/node_modules/jquery-ui/jquery-ui.js',
             'jquery-ui.min.css': root + '/node_modules/jquery-ui/themes/base/minified/jquery-ui.min.css'
         },
         dest: root + '/scripts_npm/',

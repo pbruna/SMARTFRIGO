@@ -25,7 +25,9 @@
                         Documentos para el despacho
                     </div>
                     <div class="panel-body">
-                        <documento *ngFor="let doc of orden?.Documentos" [documento]="doc"></documento>
+                        <div *ngFor="let doc of orden?.Documentos">
+                            <documento [documento]="doc"></documento>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -38,6 +40,7 @@
                 <th>Bultos <br>Ped.</th>
                 <th>Bultos <br>Sel.</th>
                 <th>Cantidad</th>
+                <th>Precio</th>
                 <th>Unidad</th>
             </tr>
             <tr *ngFor="let it of orden.Items; let i= index">
@@ -48,6 +51,7 @@
                 <td class="text-right">{{it.Cantidad}}</td>
                 <td class="text-right">{{it.Bultos?.length}}</td>
                 <td class="text-right">{{it.getCantidad() | number: '1.2-2'}}</td>
+                <td class="text-right">{{it.Precio | currency:'USD':true:'1.2-2'}}</td>
                 <td>{{it.UnidadLog.TipoUnidad == 1 ? 'Kg' : (it.UnidadLog.NomUnidad || 'Uni')}}</td>
             </tr>
         </table>

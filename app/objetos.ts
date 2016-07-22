@@ -22,13 +22,10 @@ export class OrdenDeSalida {
     LatLng: any;
     GeoCodeStatus: string;
 
-    ToDTE = function (): string {
-        return '';
-    }
-
     OnInit = function () {
         this.FechaIngreso = new Date(this.FechaIngreso);
         this.FechaDespacho = new Date(this.FechaDespacho);
+        this.Estado = EstadosOrden[this.Estado]
     }
 
 }
@@ -46,7 +43,8 @@ export class ItemDespacho {
 
     getCantidad(estado: EstadosOrden): number {
         switch (estado) {
-            case EstadosOrden.Preparada, EstadosOrden.Cerrada:
+            case EstadosOrden.Preparada:
+            case EstadosOrden.Cerrada:
                 return this.Bultos.reduce((vp, b) => vp += b.Cantidad(), 0);
             default:
                 if (this.Bultos.length == 0) return this.Cantidad * (this.UnidadLog.Unidades || 1);
@@ -121,15 +119,21 @@ export class MinDTE {
         let totBultos = 0;
         if (!itms) itms = orden.Items;
         this.items = [];
+        let PesoNeto = 0;
         itms.forEach(itm => {
             let mdi = new MinDTEItem();
             mdi.loadFromItem(itm, orden.Estado)
             if (mdi.cantidad !== 0) {
+                PesoNeto += Math.round(itm.getCantidad(EstadosOrden.Preparada) * 100) / 100;
                 this.items.push(mdi)
                 totBultos += mdi.bultos
             }
         })
-        this.items.slice(-1)[0].descripcion += '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
+        let lastDesc = '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
+        if (PesoNeto >= 0) lastDesc += ' - Peso Neto Total: ' + PesoNeto.toLocaleString();
+        lastDesc += '. Orden N°: ' + orden.Numero;
+        this.items.slice(-1)[0].descripcion += lastDesc;
+
     }
 
 }
@@ -150,18 +154,28 @@ export class MinDTEItem {
         if (!i.UnidadLog.Unidades || i.UnidadLog.Unidades == 0) i.UnidadLog.Unidades = 1;
 
         this.cantidad = i.getCantidad(estado)
-        this.descripcion = 'Item en ' + (i.Bultos.length > 0 ? i.Bultos.length : i.Cantidad) + ' bultos'
+        this.bultos = i.Bultos.length > 0 ? i.Bultos.length : i.Cantidad
+        this.descripcion = 'Item en ' + this.bultos + ' bulto' + (this.bultos > 1 ? 's' : '');
         this.codigo = i.UnidadLog.Codigo
         this.nombre = i.UnidadLog.Descripcion ? i.UnidadLog.Descripcion : i.UnidadLog.Nombre
         this.precio = i.Precio ? i.Precio : i.UnidadLog.Precio
-        if (this.cantidad < 1 && this.cantidad > 0) {
-            this.cantidad *= 1000;
-            this.precio /= 1000;
-        }
         this.tipoCod = i.UnidadLog.Codigo ? 'INT' : null
         this.unidad = i.UnidadLog.TipoUnidad == 1 && i.Bultos.length > 0 ? 'Kg' : (i.UnidadLog.NomUnidad || 'Uni.')
         this.impuesto = i.UnidadLog.Impuesto
-        this.bultos = i.Bultos.length > 0 ? i.Bultos.length : i.Cantidad
+        if (this.cantidad < 1 && this.cantidad > 0) {
+            let pq = Math.round(Math.round(this.cantidad * 100) / 100 * Math.round(this.precio * 100)) / 100
+            let i = 3
+            while (pq !== Math.round(Math.round(this.cantidad * 100 * Math.pow(10, i)) / 100 * Math.round(this.precio * 100) / Math.pow(10, i)) / 100) {
+                --i;
+                if (i === 0) break;
+            }
+            if (i !== 0) {
+                this.cantidad *= Math.pow(10, i);
+                this.precio /= Math.pow(10, i);
+                if (i === 3) this.unidad = 'g';
+                else this.unidad = '-'
+            }
+        }
     }
 }
 

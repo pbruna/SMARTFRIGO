@@ -1,15 +1,14 @@
 import { Injectable }    from '@angular/core';
-import { Headers, Http } from '@angular/http';
-
-import 'rxjs/add/operator/toPromise';
-
+import { CustomHttp } from '../HttpExtension';
+import { Http } from '@angular/Http';
 import { OrdenDeSalida, EstadosOrden, ItemDespacho, Bulto, MinDTE} from '../objetos';
 import Globals = require('../globals');
+import 'rxjs/add/operator/toPromise';
 
 @Injectable()
 export class OrdenService {
 
-    constructor(private http: Http) { }
+    constructor(private http: CustomHttp) { }
 
     getByEstado(estado: EstadosOrden): Promise<OrdenDeSalida[]> {
         return this.http.get(Globals.webServiceURL + '/OrdenesDeSalida_GetByEstado?estado=' + EstadosOrden[estado], {
@@ -74,12 +73,12 @@ export class OrdenService {
         if (!itms) itms = orden.Items;
 
         this.setCliente(orden)
-        .then(o => {
-            let dte = new MinDTE();
-            dte.loadFromOrden(orden, itms);
-            chrome.runtime.sendMessage({ op: 'RellenarSIIForm', dte: dte, NumOrden: orden.Numero });
-            window.close();
-        })
+            .then(o => {
+                let dte = new MinDTE();
+                dte.loadFromOrden(orden, itms);
+                chrome.runtime.sendMessage({ op: 'RellenarSIIForm', dte: dte, NumOrden: orden.Numero });
+                window.close();
+            })
     }
 }
 

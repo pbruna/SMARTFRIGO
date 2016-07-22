@@ -24,7 +24,7 @@ export class BuscarOrdenesComponent implements OnInit {
     if (estado == -1) return;
     this.Ordenes = null;
     this.ordenService.getByEstado(this.Estado)
-      .then(ods => this.Ordenes = ods);
+      .then(ods => this.Ordenes = ods)
 
   }
 

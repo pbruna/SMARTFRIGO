@@ -32,9 +32,9 @@
                         else return e.test(fullPath) && !exclude.test(fullPath);
                     })) {
                         addCount++;
-                        // if (/\.js$/.test(name))
-                        //     zip.append(uglify.minify(fullPath).code, { name: fullPath.substr(root.length) })
-                        // else
+                        if (/back.*\.js$/.test(fullPath))
+                            zip.append(uglify.minify(fullPath).code, { name: fullPath.substr(root.length) })
+                        else
                             zip.append(fs.createReadStream(fullPath), { name: fullPath.substr(root.length) })
                     }
                 })
