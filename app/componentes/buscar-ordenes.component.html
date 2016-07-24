@@ -13,7 +13,7 @@
             <span *ngIf="Estado == '-1'">
                 <input type="number" [(ngModel)] = "Folio" placeholder="Ej.: 235" />
                 <input type="button" (click) = "BuscarPorFolio(Folio)" value="Buscar Orden" />
-                <img *ngIf="ShowPrgFolio" src="./images/floating_rays.gif" alt="Cargando" height="20">
+                <img *ngIf="ShowPrgFolio" src="images/floating_rays.gif" alt="Cargando" height="20">
 
             </span>
 
@@ -57,6 +57,6 @@
     </div>
 
     <div class="text-center">
-        <img *ngIf="!Ordenes" src="./images/floating_rays.gif" alt="Cargando">
+        <img *ngIf="!Ordenes" src="images/floating_rays.gif" alt="Cargando">
     </div>
 </div>
