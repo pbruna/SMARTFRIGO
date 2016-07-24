@@ -130,7 +130,7 @@ export class MinDTE {
             }
         })
         let lastDesc = '\nTotal de bultos del documento: ' + totBultos.toLocaleString();
-        if (PesoNeto >= 0) lastDesc += ' - Peso Neto Total: ' + PesoNeto.toLocaleString();
+        if (PesoNeto > 0) lastDesc += ' - Peso Neto Total: ' + PesoNeto.toLocaleString();
         lastDesc += '. Orden N°: ' + orden.Numero;
         this.items.slice(-1)[0].descripcion += lastDesc;
 
