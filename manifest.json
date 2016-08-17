@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "SMARTFRIGO",
 	"description": "Aplicacion de soporte para ALMAFRIGO",
-	"version": "2.0.0.2",
+	"version": "2.0.0.5",
 	"icons": {
 		"128": "images/IconoAlmafrigo128.png",
 		"48": "images/IconoAlmafrigo48.png",
@@ -49,8 +49,7 @@
 		"http://www.almafrigo.cl/*",
 		"http://localhost:51346/*",
 		"https://www1.sii.cl/cgi-bin/Portal001/*",
-		"webRequest",
-		"webRequestBlocking"
+		"webRequest"
 	],
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

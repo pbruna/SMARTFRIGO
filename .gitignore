@@ -2,4 +2,6 @@ node_modules/
 typings/
 fonts/
 scripts_npm/
-SMARTFRIGO.zip
+./SMARTFRIGO.zip
+
+*.map

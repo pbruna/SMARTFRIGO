@@ -40,17 +40,13 @@ var Bulto = (function () {
     function Bulto() {
     }
     Bulto.prototype.Cantidad = function () {
-        if (this.UnidadLogistica.TipoUnidad) {
-            if (this.UnidadLogistica.TipoUnidad == 1)
-                return this.PesoNeto ? this.PesoNeto - (this.Tara || 0) : this.PesoInformado || 0;
-            else {
-                if (this.UnidadLogistica.Unidades == 0)
-                    return 1;
-                return this.UnidadLogistica.Unidades;
-            }
+        if (this.UnidadLogistica.TipoUnidad === 1)
+            return this.PesoNeto ? this.PesoNeto - (this.Tara || 0) : this.PesoInformado || 0;
+        else {
+            if (this.UnidadLogistica.Unidades === 0)
+                return 1;
+            return this.UnidadLogistica.Unidades || 1;
         }
-        else
-            return 1;
     };
     return Bulto;
 }());

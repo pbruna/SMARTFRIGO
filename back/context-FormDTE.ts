@@ -216,7 +216,7 @@
         if ((<HTMLInputElement>$("[name='COD_SI_NO']")[0]).checked) $("[name='COD_SI_NO']")[0].click();
 
 
-        if ((<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).checked) {
+        if ($("[name='PAGO_SI_NO']")[0] && (<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).checked) {
 
             $("[name='cbo_anio_boleta_pago_01']").val('');
             document.querySelector("[name='cbo_anio_boleta_pago_01']").dispatchEvent(event);
@@ -260,4 +260,85 @@
 
 
     getTabInfo();
+
+    (function replaceFuncionesImpuestos() {
+        var s = document.createElement('script');
+        s.text = `
+            function getGlosaOtrosImp(tpoImp) {
+                var temp = ' WHAT??????' + tpoImp;
+
+                if (tpoImp == 23) temp = 'Art. de oro, Joyas y Pieles finas 15%';
+                else if (tpoImp == 44) temp = 'Tapices, Casas rod., Caviar y Arm.de aire 15%';
+                else if (tpoImp == 18) temp = 'Anticipo IVA de carne 5%';
+                else if (tpoImp == 24) temp = 'Licores, Pisco, Destilados 31,5%';
+                else if (tpoImp == 25) temp = 'Vinos, Chichas, Sidras 20,5%';
+                else if (tpoImp == 26) temp = decodeURI('Cervezas y Otras bebidas alcoh%C3%B3licas 20,5%25');
+                else if (tpoImp == 27) temp = decodeURI('Aguas minerales y Beb. analcoh%C3%B3l. 10%25');
+                else if (tpoImp == 271) temp = decodeURI('Beb. analcoh%C3%B3l. elevado cont azucar 18%25');
+
+                return temp;
+            }
+            function genSelectOtrosImp(tpoImp) {
+                var temp;
+                var tpoDoc = document.forms["VIEW_EFXP"].elements["PTDC_CODIGO"].value;
+                var tpoSelect;
+
+                if ((tpoDoc == 33) || (tpoDoc == 52)) tpoSelect = 1;
+                else if ((tpoDoc == 56) || (tpoDoc == 61)) tpoSelect = 2;
+                else if (tpoDoc == 46) tpoSelect = 3;
+
+                if ((tpoImp == null) || (tpoImp.length == 0))
+                    temp = '<OPTION VALUE="" selected>NO TIENE</OPTION>';
+                else
+                    temp = '<OPTION VALUE="">NO TIENE</OPTION>';
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 23))
+                    temp += '<OPTION VALUE=23 selected>' + getGlosaOtrosImp(23) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=23>' + getGlosaOtrosImp(23) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 44))
+                    temp += '<OPTION VALUE=44 selected>' + getGlosaOtrosImp(44) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=44>' + getGlosaOtrosImp(44) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 18))
+                    temp += '<OPTION VALUE=18 selected>' + getGlosaOtrosImp(18) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=18>' + getGlosaOtrosImp(18) + '</OPTION>';
+
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 24))
+                    temp += '<OPTION VALUE=24 selected>' + getGlosaOtrosImp(24) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=24>' + getGlosaOtrosImp(24) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 25))
+                    temp += '<OPTION VALUE=25 selected>' + getGlosaOtrosImp(25) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=25>' + getGlosaOtrosImp(25) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 26))
+                    temp += '<OPTION VALUE=26 selected>' + getGlosaOtrosImp(26) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=26>' + getGlosaOtrosImp(26) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 27))
+                    temp += '<OPTION VALUE=27 selected>' + getGlosaOtrosImp(27) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=27>' + getGlosaOtrosImp(27) + '</OPTION>';
+
+                if (((tpoSelect == 1) || (tpoSelect == 2)) && (tpoImp == 271))
+                    temp += '<OPTION VALUE=271 selected>' + getGlosaOtrosImp(271) + '</OPTION>';
+                else if ((tpoSelect == 1) || (tpoSelect == 2))
+                    temp += '<OPTION VALUE=271>' + getGlosaOtrosImp(271) + '</OPTION>';
+
+                return temp;
+            }
+
+            dibujaDetalles();
+        `
+        document.body.appendChild(s);
+
+    })();
+
 })();

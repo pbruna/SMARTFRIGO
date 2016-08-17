@@ -22,11 +22,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         case 'AnalizarPDF':
     }
 });
-chrome.webRequest.onBeforeRequest.addListener(function (details) {
-    return {
-        redirectUrl: 'https://docs.google.com/uc?authuser=0&id=0B7KGwTMzOZYKRnBDQkdHdGx6WUk&export=download'
-    };
-}, { urls: ['https://www1.sii.cl/Portal001/JS/validaUtil.js'] }, ['blocking']);
 function SubirPDFaALMAFRIGO(message, func) {
     message.tabId = parseInt(message.tabId);
     var xhrp = new XMLHttpRequest();

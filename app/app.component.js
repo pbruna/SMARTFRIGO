@@ -13,6 +13,7 @@ var buscar_ordenes_component_1 = require('./componentes/buscar-ordenes.component
 var orden_component_1 = require('./componentes/orden.component');
 var orden_service_1 = require('./servicios/orden.service');
 var tmp = 1000;
+core_1.enableProdMode();
 var AppComponent = (function () {
     function AppComponent() {
         this.showO = false;

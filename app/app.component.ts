@@ -1,4 +1,4 @@
-import { Component, OnInit, trigger, state, style, transition, animate } from '@angular/core';
+import { Component, OnInit, trigger, state, style, transition, animate, enableProdMode } from '@angular/core';
 import { OrdenDeSalida } from './objetos';
 
 import { BuscarOrdenesComponent } from './componentes/buscar-ordenes.component';
@@ -7,6 +7,7 @@ import { OrdenService } from './servicios/orden.service';
 
 
 var tmp = 1000
+enableProdMode();
 @Component({
     selector: 'smart-frigo',
     template: `<div>
