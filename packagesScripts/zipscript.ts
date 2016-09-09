@@ -7,7 +7,7 @@
     var zip = archiver('zip');
 
     var files = ['index.html', 'styles.css', 'manifest.json', 'bundle.js', /(fonts|images|scripts_npm|back|app).*/,]
-    var exclude = /(map|ts|app\\.*js)$/
+    var exclude = /(back\\context-pruebas.js|back\\DoScan.js|back\\background.js|back\\factura-electronica.js|map|ts|app\\.*js)$/
     var root = process.cwd();
     var addCount = 0;
     var totalCount = 0;
@@ -27,8 +27,7 @@
                     if (err) return sendErr(err);
                     if (stats.isDirectory()) addPath(fullPath)
                     else if (stats.isFile() && files.some(e => {
-                        if (typeof e === 'string')
-                            return fullPath.toUpperCase() === (root + '\\' + e).toUpperCase();
+                        if (typeof e === 'string') return fullPath.toUpperCase() === (root + '\\' + e).toUpperCase();
                         else return e.test(fullPath) && !exclude.test(fullPath);
                     })) {
                         addCount++;

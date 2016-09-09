@@ -1,23 +1,38 @@
+    var pdf64Base: string
+    var timbreElec: string
+    var status: string
 
 (function makeTest() {
     var xhr = new XMLHttpRequest();
     xhr.open('get', 'http://www.almafrigo.cl/webservices/WebServiceOperaciones.asmx/OrdenesDeSalida_GetDocumentoDeRegistro?idReg=65dc5ae9-64c4-4f4b-9847-40f4a04dfabc')
     xhr.responseType = 'blob';
     xhr.onload = function () {
-        console.log('Descraga finalizada correctamente. Comenzando transformación a base64');
+        console.log('Descarga finalizada correctamente. Enviando a scan');
 
-        var reader = new FileReader();
-        reader.readAsDataURL(xhr.response);
-        reader.onloadend = function () {
-        console.log('base64 finalizada. Enviando al Back');
-            let pdf64Base = reader.result.substr(reader.result.indexOf('base64,') + 7);
-            chrome.runtime.sendMessage({ op: 'AnalizarPDF', pdf64Base: pdf64Base }, null, function (response) {
-                console.log(response);
-            });
-        }
+            let sc = new ScanPDF417()
+            sc.ScanPDF417FromPDFFile(xhr.response, 1, 4, function (result: ScanPDF417Result) {
+                if(result.status === ScanPDF417ResultStatus.OK) timbreElec = result.result[0].Text
+                if(pdf64Base) EnviarPDFalBack();
+            })
+
+            var reader = new FileReader();
+            reader.readAsDataURL(xhr.response);
+            reader.onloadend = function () {
+                pdf64Base = reader.result.substr(reader.result.indexOf('base64,') + 7);
+                if(status) EnviarPDFalBack();
+            }
     }
     xhr.send();
     console.log('Solicitada Descarga');
 
+
+    function EnviarPDFalBack() {
+        chrome.runtime.sendMessage({ op: 'SubirPDF', pdf64Base: pdf64Base, tabId: 1, numorden: 46, timbreElec: timbreElec }, null, function (response) {
+        });
+    }
+
 })()
+
+
+
 

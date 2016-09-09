@@ -11,7 +11,9 @@
             "bootstrap.min.js": root + '/node_modules/bootstrap/dist/js/bootstrap.min.js',
             "bootstrap.min.css": root + '/node_modules/bootstrap/dist/css/bootstrap.min.css',
             'jquery.min.js': root + '/node_modules/jquery/dist/jquery.min.js',
-            'jquery-ui.min.css': root + '/node_modules/jquery-ui/themes/base/minified/jquery-ui.min.css'
+            'jquery-ui.min.css': root + '/node_modules/jquery-ui/themes/base/minified/jquery-ui.min.css',
+            'pdf.combined.js': root + '/node_modules/pdfjs-dist/build/pdf.combined.js',
+            'BigInteger.min.js': root + '/node_modules/big-integer/BigInteger.min.js'
         },
         dest: root + '/scripts_npm/',
         overwrite: true

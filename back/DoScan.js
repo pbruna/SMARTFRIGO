@@ -1,7 +1,4 @@
 "use strict";
-require('./BigInteger.min');
-var ZXing = require('./zxing-pdf417.min');
-var PDFJS = require('./PDF.min');
 var ScanPDF417 = (function () {
     function ScanPDF417() {
         this.ScanPDF417FromImgHTMLElement = function (image) {
@@ -20,6 +17,7 @@ var ScanPDF417 = (function () {
             }
         };
         this.ScanPDF417FromPDFFile = function (file, numPage, zoom, callBack) {
+            var sc = this;
             var fr = new FileReader();
             fr.onload = function () {
                 PDFJS.getDocument(fr.result).then(function (pdf) {
@@ -34,7 +32,7 @@ var ScanPDF417 = (function () {
                             var img = document.createElement('img');
                             img.src = canvas.toDataURL('image/jpeg');
                             if (callBack)
-                                callBack(this.ScanPDF417FromImgHTMLElement(img));
+                                callBack(sc.ScanPDF417FromImgHTMLElement(img));
                         }, function (err) {
                             console.log(err);
                         });
@@ -67,7 +65,10 @@ var ScanPDF417 = (function () {
 }());
 exports.ScanPDF417 = ScanPDF417;
 var ScanPDF417Result = (function () {
-    function ScanPDF417Result(status, text, err) {
+    function ScanPDF417Result(status, result, err) {
+        this.status = status;
+        this.result = result;
+        this.err = err;
     }
     return ScanPDF417Result;
 }());

@@ -1,4 +1,6 @@
-// import { ScanPDF417, ScanPDF417ResultStatus} from './DoScan'
+"use strict";
+var factura_electronica_1 = require('./factura-electronica');
+var raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0)
         chrome.pageAction.show(tabId);
@@ -19,13 +21,14 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         case 'SubirPDF':
             SubirPDFaALMAFRIGO(message, sendResponse);
             return true;
-        case 'AnalizarPDF':
     }
 });
 function SubirPDFaALMAFRIGO(message, func) {
     message.tabId = parseInt(message.tabId);
+    var te = new factura_electronica_1.timbreElectronico();
+    te.leerTimbre(message.timbreElec);
     var xhrp = new XMLHttpRequest();
-    xhrp.open('post', 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/OrdenesDeSalida_subirPDF');
+    xhrp.open('post', raiz + 'OrdenesDeSalida_subirPDFconTimbre');
     xhrp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhrp.onload = function () {
         func({ status: 'OK' });
@@ -34,13 +37,12 @@ function SubirPDFaALMAFRIGO(message, func) {
         func({ status: 'ERROR' });
     };
     xhrp.upload.onprogress = function (e) {
-        console.log(e);
         if (e.lengthComputable)
             chrome.tabs.sendMessage(message.tabId, { op: 'PorcentajeSubidaPDF', valor: e.loaded / e.total });
     };
     xhrp.ontimeout = function () {
         func({ status: 'TIMEOUT' });
     };
-    xhrp.send("numorden=" + message.numorden + "&pdf=" + message.pdf64Base);
+    xhrp.send("numorden=" + message.numorden + "&pdf=" + message.pdf64Base + "&timbre=" + btoa(JSON.stringify(te)));
 }
 //# sourceMappingURL=background.js.map

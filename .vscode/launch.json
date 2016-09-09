@@ -5,7 +5,7 @@
             "name": "Iniciar",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/packagesScripts/copynpmscripts.ts",
+            "program": "${workspaceRoot}/packagesScripts/zipscript.ts",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",

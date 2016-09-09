@@ -1,11 +1,8 @@
+declare var PDFJS: any;
+declare var ZXing: any
 
-import './BigInteger.min'
-var ZXing = require('./zxing-pdf417.min');
-var PDFJS = require('./PDF.min');
 
 export class ScanPDF417 {
-
-
     ScanPDF417FromImgHTMLElement = function (image: HTMLImageElement): ScanPDF417Result {
         var
             canvas = document.createElement('canvas'),
@@ -29,8 +26,8 @@ export class ScanPDF417 {
     }
 
     ScanPDF417FromPDFFile = function (file: File, numPage: number, zoom: number, callBack: Function) {
-
-        var fr = new FileReader();
+        let sc = this;
+        let fr = new FileReader();
         fr.onload = function () {
             PDFJS.getDocument(fr.result).then(function (pdf) {
                 pdf.getPage(numPage).then(function (page) {
@@ -44,7 +41,7 @@ export class ScanPDF417 {
                     page.render({ canvasContext: context, viewport: viewport }).promise.then(function () {
                         var img = document.createElement('img');
                         img.src = canvas.toDataURL('image/jpeg');
-                        if (callBack) callBack(this.ScanPDF417FromImgHTMLElement(img));
+                        if (callBack) callBack(sc.ScanPDF417FromImgHTMLElement(img));
                     }, function (err) {
                         console.log(err);
                     });
@@ -90,7 +87,14 @@ export class ScanPDF417 {
 }
 
 export class ScanPDF417Result {
-    constructor(status: ScanPDF417ResultStatus, text?: string, err?: any) { }
+    status: ScanPDF417ResultStatus
+    result: any
+    err: any
+    constructor(status: ScanPDF417ResultStatus, result?: any, err?: any) {
+        this.status = status;
+        this.result = result;
+        this.err = err;
+     }
 }
 
 export enum ScanPDF417ResultStatus { OK, Error };

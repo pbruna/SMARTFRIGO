@@ -66,7 +66,7 @@ export class Bulto {
         if (this.UnidadLogistica.TipoUnidad === 1)
             return this.PesoNeto ? this.PesoNeto - (this.Tara || 0) : this.PesoInformado || 0;
         else {
-            if (this.UnidadLogistica.Unidades===0) return 1;
+            if (this.UnidadLogistica.Unidades === 0) return 1;
             return this.UnidadLogistica.Unidades || 1;
         }
     }
@@ -106,12 +106,14 @@ export class MinDTE {
 
     loadFromOrden(orden: OrdenDeSalida, itms: ItemDespacho[]) {
         let f = new Date(orden.FechaDespacho.getTime());
-        this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+        if (orden.Cliente) {
+            this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+            this.condicion = orden.Cliente.Condicion;
+            this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
+            this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
+            this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
+        }
         this.emision = orden.FechaDespacho.toISOString();
-        this.condicion = orden.Cliente.Condicion;
-        this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
-        this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
-        this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
 
         let totBultos = 0;
         if (!itms) itms = orden.Items;

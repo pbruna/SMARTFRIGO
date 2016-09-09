@@ -1,6 +1,6 @@
-// import { ScanPDF417, ScanPDF417ResultStatus} from './DoScan'
+import { timbreElectronico} from './factura-electronica'
 
-
+const raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/'
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0) chrome.pageAction.show(tabId);
 });
@@ -22,26 +22,17 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             SubirPDFaALMAFRIGO(message, sendResponse);
             return true;
 
-        case 'AnalizarPDF':
-            // var sc = new ScanPDF417()
-            // try {
-            //     console.log('enviado a analisis');
-                
-            //     sc.ScanPDF417FromBase64(message.pdf64Base, 1, 3, function (response) {
-            //         sendResponse(response)
-            //     })
-            // } catch (err) {
-            //     sendResponse(err)
-            // }
-            // return true;
     }
 });
 
 
 function SubirPDFaALMAFRIGO(message, func: Function) {
     message.tabId = parseInt(message.tabId);
+    let te = new timbreElectronico();
+    te.leerTimbre(message.timbreElec)
+
     var xhrp = new XMLHttpRequest()
-    xhrp.open('post', 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/OrdenesDeSalida_subirPDF')
+    xhrp.open('post', raiz + 'OrdenesDeSalida_subirPDFconTimbre')
     xhrp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhrp.onload = function () { //Se ha enviado a ALMAFRIGO el documento
         func({ status: 'OK' });
@@ -50,14 +41,13 @@ function SubirPDFaALMAFRIGO(message, func: Function) {
         func({ status: 'ERROR' });
     }
     xhrp.upload.onprogress = function (e) {
-        console.log(e);
         if (e.lengthComputable)
             chrome.tabs.sendMessage(message.tabId, { op: 'PorcentajeSubidaPDF', valor: e.loaded / e.total });
     }
     xhrp.ontimeout = function () {
         func({ status: 'TIMEOUT' });
     }
-    xhrp.send("numorden=" + message.numorden + "&pdf=" + message.pdf64Base);
+    xhrp.send("numorden=" + message.numorden + "&pdf=" + message.pdf64Base + "&timbre=" + btoa(JSON.stringify(te)));
 
 }
 

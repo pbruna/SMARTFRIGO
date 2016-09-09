@@ -69,12 +69,14 @@ var MinDTE = (function () {
     MinDTE.prototype.loadFromOrden = function (orden, itms) {
         var _this = this;
         var f = new Date(orden.FechaDespacho.getTime());
-        this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+        if (orden.Cliente) {
+            this.vencimiento = (new Date(f.getFullYear(), f.getMonth(), f.getDate() + orden.Cliente.Plazo)).toISOString();
+            this.condicion = orden.Cliente.Condicion;
+            this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
+            this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
+            this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
+        }
         this.emision = orden.FechaDespacho.toISOString();
-        this.condicion = orden.Cliente.Condicion;
-        this.retenedorIVACarne = orden.Cliente.EsRet5PorCarne;
-        this.RUT = orden.Cliente.RUT.substr(0, orden.Cliente.RUT.length - 2);
-        this.RUT_DV = orden.Cliente.RUT.substr(orden.Cliente.RUT.length - 1, 1);
         var totBultos = 0;
         if (!itms)
             itms = orden.Items;
