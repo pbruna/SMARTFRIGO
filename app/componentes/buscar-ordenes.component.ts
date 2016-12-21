@@ -1,14 +1,11 @@
 import { Component, OnInit, Output, EventEmitter, trigger } from '@angular/core';
 import { OrdenDeSalida, EstadosOrden } from '../objetos';
 import { OrdenService } from '../servicios/orden.service';
-import { DocumentoComponent } from './documento.component';
-import { TituloComponent } from './titulo.component'
 
 
 @Component({
   selector: 'buscar-ordenes',
   templateUrl: './app/componentes/buscar-ordenes.component.html',
-  directives: [DocumentoComponent, TituloComponent]
 })
 export class BuscarOrdenesComponent implements OnInit {
   Ordenes: OrdenDeSalida[];

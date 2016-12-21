@@ -1,13 +1,10 @@
 import { Component, EventEmitter, OnInit, Input, Output} from '@angular/core';
 import { OrdenDeSalida, EstadosOrden } from '../objetos';
 import { OrdenService } from '../servicios/orden.service';
-import { DocumentoComponent } from './documento.component';
-import { TituloComponent } from './titulo.component';
 
 @Component({
     selector: 'orden',
     templateUrl: './app/componentes/orden.component.html',
-    directives: [DocumentoComponent, TituloComponent],
 })
 export class OrdenComponent implements OnInit {
     @Input() orden: OrdenDeSalida;

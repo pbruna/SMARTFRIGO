@@ -1,11 +1,6 @@
 import { Component, OnInit, trigger, state, style, transition, animate, enableProdMode } from '@angular/core';
 import { OrdenDeSalida } from './objetos';
 
-import { BuscarOrdenesComponent } from './componentes/buscar-ordenes.component';
-import { OrdenComponent } from './componentes/orden.component';
-import { OrdenService } from './servicios/orden.service';
-
-
 var tmp = 1000
 enableProdMode();
 @Component({
@@ -16,8 +11,6 @@ enableProdMode();
     </div>
     <div class="divClass" @flyRight="'in'" *ngIf="showO"><orden [orden]="orden" (volver)="showO = false"></orden></div>
   </div>`,
-    directives: [BuscarOrdenesComponent, OrdenComponent],
-    providers: [OrdenService],
     styles : [`
         .divClass {
             position: fixed;
