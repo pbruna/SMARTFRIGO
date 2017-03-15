@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "SMARTFRIGO",
 	"description": "Aplicacion de soporte para ALMAFRIGO",
-	"version": "2.0.0.6",
+	"version": "2.1.0",
 	"icons": {
 		"128": "images/IconoAlmafrigo128.png",
 		"48": "images/IconoAlmafrigo48.png",
@@ -15,7 +15,11 @@
 		"default_popup": "index.html"
 	},
 	"background": {
-		"scripts": ["back/bundle.js"],
+		"scripts": [
+			"node_modules/systemjs/dist/system.src.js",
+			"config.js",
+			"scripts/enter-back.js"
+		],
 		"persistent": false
 	},
 	"content_scripts": [
@@ -43,13 +47,36 @@
 			"css": [
 				"scripts_npm/jquery-ui.min.css"
 			]
-		}			
+		},
+		{
+			"matches": [
+				"http://www.almafrigo.cl/mi_cuenta.aspx",
+				"http://localhost:51346/mi_cuenta.aspx"
+			],
+			"js": [
+				"node_modules/systemjs/dist/system.src.js",
+				"config.js",
+				"scripts/enter-context-os.js"
+			]
+		}
 	],
 	"permissions": [
 		"storage",
 		"tabs",
 		"http://www.almafrigo.cl/*",
-		"https://www1.sii.cl/cgi-bin/Portal001/*"
+		"https://www1.sii.cl/cgi-bin/Portal001/*",
+		"http://localhost:3001/*",
+		"https://34.200.105.231/*"
 	],
-	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+	"web_accessible_resources": [
+		"*"
+	],
+	"externally_connectable": {
+		"matches": [
+			"http://localhost/*",
+			"http://www.almafrigo.cl/*",
+			"https://www.almafrigo.cl/*"
+		]
+	}
 }

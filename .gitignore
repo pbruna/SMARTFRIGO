@@ -2,6 +2,15 @@ node_modules/
 typings/
 fonts/
 scripts_npm/
+jspm_packages/
+
+# map.js y js
+app/**/*.js
+app/**/*.js.map
+back/**/*.js
+back/**/*.js.map
+
+
 ./SMARTFRIGO.zip
 
 *.map

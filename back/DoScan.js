@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var ScanPDF417 = (function () {
     function ScanPDF417() {
         this.ScanPDF417FromImgHTMLElement = function (image) {
@@ -73,10 +74,10 @@ var ScanPDF417Result = (function () {
     return ScanPDF417Result;
 }());
 exports.ScanPDF417Result = ScanPDF417Result;
+var ScanPDF417ResultStatus;
 (function (ScanPDF417ResultStatus) {
     ScanPDF417ResultStatus[ScanPDF417ResultStatus["OK"] = 0] = "OK";
     ScanPDF417ResultStatus[ScanPDF417ResultStatus["Error"] = 1] = "Error";
-})(exports.ScanPDF417ResultStatus || (exports.ScanPDF417ResultStatus = {}));
-var ScanPDF417ResultStatus = exports.ScanPDF417ResultStatus;
+})(ScanPDF417ResultStatus = exports.ScanPDF417ResultStatus || (exports.ScanPDF417ResultStatus = {}));
 ;
 //# sourceMappingURL=DoScan.js.map

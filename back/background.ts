@@ -26,6 +26,15 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 });
 
 
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+    switch (message.op) {
+        case 'version': //Enviado desde contentscript
+            sendResponse(chrome.runtime.getManifest().version);
+            break;
+
+    }
+    });
+
 function SubirPDFaALMAFRIGO(message, func: Function) {
     message.tabId = parseInt(message.tabId);
     let te = new timbreElectronico();

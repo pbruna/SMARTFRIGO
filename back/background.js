@@ -1,5 +1,6 @@
 "use strict";
-var factura_electronica_1 = require('./factura-electronica');
+Object.defineProperty(exports, "__esModule", { value: true });
+var factura_electronica_1 = require("./factura-electronica");
 var raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0)
@@ -21,6 +22,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         case 'SubirPDF':
             SubirPDFaALMAFRIGO(message, sendResponse);
             return true;
+    }
+});
+chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
+    switch (message.op) {
+        case 'version':
+            sendResponse(chrome.runtime.getManifest().version);
+            break;
     }
 });
 function SubirPDFaALMAFRIGO(message, func) {

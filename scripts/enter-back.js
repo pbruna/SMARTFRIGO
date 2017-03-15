@@ -1,0 +1,1 @@
+SystemJS.import(chrome.extension.getURL('/back/background.js'));

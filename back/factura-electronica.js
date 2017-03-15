@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var timbreElectronico = (function () {
     function timbreElectronico() {
         this.rutReceptor = '';
@@ -31,6 +32,7 @@ var timbreElectronico = (function () {
     return timbreElectronico;
 }());
 exports.timbreElectronico = timbreElectronico;
+var documentosElectronicos;
 (function (documentosElectronicos) {
     documentosElectronicos[documentosElectronicos["FactElec"] = 33] = "FactElec";
     documentosElectronicos[documentosElectronicos["FactExenta"] = 34] = "FactExenta";
@@ -39,6 +41,5 @@ exports.timbreElectronico = timbreElectronico;
     documentosElectronicos[documentosElectronicos["NotadeDebElect"] = 56] = "NotadeDebElect";
     documentosElectronicos[documentosElectronicos["NotadeCredElect"] = 61] = "NotadeCredElect";
     documentosElectronicos[documentosElectronicos["LiquiFactElect"] = 43] = "LiquiFactElect";
-})(exports.documentosElectronicos || (exports.documentosElectronicos = {}));
-var documentosElectronicos = exports.documentosElectronicos;
+})(documentosElectronicos = exports.documentosElectronicos || (exports.documentosElectronicos = {}));
 //# sourceMappingURL=factura-electronica.js.map
