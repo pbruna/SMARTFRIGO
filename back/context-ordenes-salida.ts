@@ -92,6 +92,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
     let itms = {};
     os.Items.forEach(it => itms[it.UnidadLog.Codigo] = it)
     let clienteDF: clienteDF
+    let folioPedido: number
     return Observable.of('Iniciando sesión en De Fontana')
         .do(x => sendMessageBackToPage(x))
         .flatMap(x => getDeFontanaSesion())
@@ -112,7 +113,12 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                 .flatMap(rut => getClienteDeFontana(rut))
                 .do(x => sendMessageBackToPage('Obteniendo datos de contacto para cliente'))
                 .flatMap(x => getContactoClienteDeFontana(x))
-                .do(x => sendMessageBackToPage('Cliente Obtenido correctamente'))))
+                .do(x => sendMessageBackToPage('Cliente Obtenido correctamente')),
+            Observable.of(null)
+                .do(x => sendMessageBackToPage('Obteniendo Folio de Pedidos'))
+                .flatMap(x => getFolioPedidoSiguiente())
+                .do(x => sendMessageBackToPage('Folio de pedido siguiente ' + x))
+                .do(x => folioPedido = x)))
         .do(x => clienteDF = x[1])
         .map(x => cliente.Campos.defontana.separarXImpuesto
             ? os.Items.reduce((acc, it) => {
@@ -122,7 +128,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
             : { '': os.Items })
         .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
         .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
-        .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF))
+        .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF, folioPedido++))
 
 
 
@@ -382,8 +388,67 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
         }))
 }
 
+function getFolioPedidoSiguiente(): Observable<number> {
+    return getDeFontanaSesion()
+        .flatMap(sesion => Observable.create((obs: Observer<number>) => {
+            let xhr = new XMLHttpRequest()
+            xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
+            xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
+            xhr.responseType = 'document'
+            xhr.onload = () => {
+                if (xhr.status !== 200) {
+                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    obs.complete();
+                    return
+                }
+                try {
+                    let num = 0;
+                    let numeros = xhr.responseXML.getElementsByTagName('numero')
+                    for (let k = 0; k < numeros.length; ++k)
+                        num = Math.max(num, parseInt(numeros.item(k).textContent))
+                    obs.next(num + 1)
+                } catch (e) {
+                    obs.error(e)
+                }
 
-function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF): Observable<boolean> {
+                obs.complete();
+
+            }
+            xhr.onerror = e => {
+                obs.error(e)
+                obs.complete();
+            }
+            xhr.send(`<?xml version="1.0" encoding="utf-8"?>
+            <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+                xmlns:tem="http://tempuri.org/"
+                xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
+                <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
+                    <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
+                    <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
+                    </soap:Header>
+                <soap:Body>
+                    <tem:GetPedidos>
+                        <tem:sesion>
+                            <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
+                            <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
+                            <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
+                            <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
+                        </tem:sesion>
+                        <tem:estado></tem:estado>
+                        <tem:numero></tem:numero>
+                        <tem:idCliente></tem:idCliente>
+                        <tem:fechaIngreso></tem:fechaIngreso>
+                        <tem:fechaExpiracion></tem:fechaExpiracion>
+                        <tem:idVendedor></tem:idVendedor>
+                        <tem:fechaFinal></tem:fechaFinal>
+                    </tem:GetPedidos>
+                </soap:Body>
+            </soap:Envelope>`)
+        }))
+}
+
+
+function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF, numero: number): Observable<boolean> {
     os.FechaIngreso = new Date(os.FechaIngreso)
     items.forEach(it => it['facturado'] = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
         (b.UnidadLogistica.TipoUnidad === 1 ? b.PesoNeto ? b.PesoNeto - (b.Tara || 0) : b.PesoInformado || 0
@@ -417,8 +482,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
             xhr.send(`<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/"
                 xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core"
-                xmlns:ws1="http://schemas.datacontract.org/2004/07/WS.Ventas"
-                xmlns:dom="http://schemas.datacontract.org/2004/07/Dominio.General.Entidades" >
+                xmlns:ws1="http://schemas.datacontract.org/2004/07/WS.Ventas">
                 <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
                     <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
                     <wsa:Action>http://tempuri.org/IService/GrabaPedido</wsa:Action>
@@ -467,7 +531,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:IDMonedaIngreso>PESO</ws1:IDMonedaIngreso>
                             <ws1:IDTipoDocumento>XFVA</ws1:IDTipoDocumento>
                             <ws1:IDVendedor>${cliDF.IDVendedor}</ws1:IDVendedor>
-                            <ws1:Numero>10</ws1:Numero>
+                            <ws1:Numero>${numero}</ws1:Numero>
                             <ws1:ObservacionDespacho>${os.Direccion}</ws1:ObservacionDespacho>
                             <ws1:ObservacionFacturacion>Total Bultos ${items.reduce((acc, it) => acc + (it.Bultos ? it.Bultos.length : 0), 0).toLocaleString()}
 Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleString()}
