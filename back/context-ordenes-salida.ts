@@ -400,7 +400,7 @@ function getFolioPedidoSiguiente(): Observable<number> {
                     try {
                         obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
                     } catch (e) {
-                        obs.error('Se produjo un error de compilación')
+                        obs.error('Se produjo un error de compilación en la obtención de folios')
                     }
 
                     obs.complete();
