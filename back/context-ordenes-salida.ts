@@ -397,7 +397,12 @@ function getFolioPedidoSiguiente(): Observable<number> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    try {
+                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    } catch (e) {
+                        obs.error('Se produjo un error de compilación')
+                    }
+
                     obs.complete();
                     return
                 }
