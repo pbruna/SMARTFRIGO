@@ -120,7 +120,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                 .do(x => sendMessageBackToPage('Folio de pedido siguiente ' + x))
                 .do(x => folioPedido = x)))
         .do(x => clienteDF = x[1])
-        .map(x => cliente.Campos.defontana.separarXImpuesto
+        .map(x => cliente.Campos.defontana.separarXImpuesto && !os.Cliente.EsRet5PorCarne 
             ? os.Items.reduce((acc, it) => {
                 acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
                 return acc
@@ -439,7 +439,6 @@ function getFolioPedidoSiguiente(): Observable<number> {
                             <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
                             <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
                         </tem:sesion>
-                        <tem:estado></tem:estado>
                         <tem:numero></tem:numero>
                         <tem:idCliente></tem:idCliente>
                         <tem:fechaIngreso></tem:fechaIngreso>
