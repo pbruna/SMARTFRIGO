@@ -1,1 +1,0 @@
-SystemJS.import(chrome.extension.getURL('/back/context-ordenes-salida.js'));

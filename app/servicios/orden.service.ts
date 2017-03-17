@@ -1,6 +1,5 @@
 import { Injectable }    from '@angular/core';
 import { CustomHttp } from '../HttpExtension';
-import { Http } from '@angular/Http';
 import { OrdenDeSalida, EstadosOrden, ItemDespacho, Bulto, MinDTE} from '../objetos';
 import Globals = require('../globals');
 import 'rxjs/add/operator/toPromise';

@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var factura_electronica_1 = require("./factura-electronica");
 var raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {

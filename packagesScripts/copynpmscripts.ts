@@ -7,7 +7,7 @@
         files: {
             "Reflect.js": root + '/node_modules/reflect-metadata/Reflect.js',
             "shim.min.js": root + '/node_modules/core-js/client/shim.min.js',
-            "system.src.js": root + '/node_modules/systemjs/dist/system.src.js',
+            "system.js": root + '/node_modules/systemjs/dist/system.js',
             'zone.js': root + '/node_modules/zone.js/dist/zone.js',
             "bootstrap.min.js": root + '/node_modules/bootstrap/dist/js/bootstrap.min.js',
             "bootstrap.min.css": root + '/node_modules/bootstrap/dist/css/bootstrap.min.css',

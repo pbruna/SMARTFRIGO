@@ -1,9 +1,10 @@
+import * as fs from 'fs'
+import * as archiver from 'archiver'
+import * as uglify from 'uglify-js2'
+
+
 
 (function () {
-    var archiver = require("archiver");
-    var fs = require('fs');
-    var path = require('path')
-    var uglify = require('uglify-js2')
     var zip = archiver('zip');
 
     var files = ['index.html', 'styles.css', 'manifest.json', 'bundle.js', /(fonts|images|scripts_npm|back|app).*/,]
