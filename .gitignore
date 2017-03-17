@@ -1,6 +1,5 @@
 node_modules/
 typings/
-fonts/
 scripts_npm/
 jspm_packages/
 
@@ -9,8 +8,13 @@ app/**/*.js
 app/**/*.js.map
 back/**/*.js
 back/**/*.js.map
+contents_scripts/**/*.js
+contents_scripts/**/*.js.map
+enter_scripts/**/*.js
+enter_scripts/**/*.js.map
+packages_scripts/**/*.js
+packages_scripts/**/*.js.map
 
 
 ./SMARTFRIGO.zip
 
-*.map

@@ -9,7 +9,9 @@ enableProdMode();
     <div class="divClass" @flyLeft="showO ? 'void' : 'in' " >
         <buscar-ordenes (onSelectOrden)="SeleccionarOrden($event)"></buscar-ordenes>
     </div>
-    <div class="divClass" @flyRight="'in'" *ngIf="showO"><orden [orden]="orden" (volver)="showO = false"></orden></div>
+    <div class="divClass" @flyRight="'in'" *ngIf="showO">
+        <orden [orden]="orden" (volver)="showO = false"></orden>
+    </div>
   </div>`,
     styles : [`
         .divClass {
