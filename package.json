@@ -6,8 +6,6 @@
     "lite": "lite-server",
     "postinstall": "typings install",
     "tsc": "tsc",
-    "tsc:w": "tsc -w",
-    "typings": "typings",
     "zipit": "npm run build && node packagesScripts/zipscript.js",
     "build": "npm run tsc && npm run copyscripts && npm run cr_bundle && npm run cr_bundle_back",
     "cr_bundle": "browserify app/main.js | uglifyjs --screw-ie8 --compress --mangle  > scripts_npm/bundle.js",
