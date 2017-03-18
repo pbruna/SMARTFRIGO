@@ -1,13 +1,23 @@
 var urls = {
-    "https://www1.sii.cl/cgi_csm/csmDespF29.cgi": 'content-f29-propuesta',
-    "https://www.sii.cl/cgi_SIDCON/CONCVF_VerFormulario.cgi*COD_FORM=F29*": 'content-f29-compacto',
-    "https://www.sii.cl/cgi_SIDCON/CONMNF_Menu.cgi*": 'content-f29',
-    "https://www1.sii.cl/cgi-bin/Portal001/mipeAdminDocsEmi.cg*": 'content-dte-recibidos',
-    "https://palena.sii.cl/cgi_dte/consultaDTE/wsDTEConsRecCont.sh": 'content-dte-recibidos-sii',
-    "https://www1.sii.cl/cgi-bin/Portal001/mipeVisualizaLibro.cgi*": 'content-lcv',
-    "https://www1.sii.cl/cgi-bin/Portal001/mipeDetalleLbr.cgi*": 'content-ingreso-doc-lcv',
-    "https://www1.sii.cl/cgi-bin/Portal001/mipeDespAgrDetalle.cgi*": 'content-ingreso-detalle-lcv'
+    "https://www1.sii.cl/cgi-bin/Portal001/mipeSendXML.cgi*": [
+        "scripts_npm/jquery.min.js",
+        "scripts_npm/jquery-ui.min.js",
+        "scripts_npm/BigInteger.min.js",
+        "back/zxing-pdf417.js",
+        "scripts_npm/pdf.combined.js",
+        "contents_scripts/context-dte-emitido.js"
+    ],
+    "https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi*": [
+        "scripts_npm/jquery.min.js",
+        "contents_scripts/context-form-dte.js"
+    ],
+    "http://www.almafrigo.cl/mi_cuenta.aspx*": [
+        "node_modules/systemjs/dist/system.src.js",
+        "config.js",
+        "contents_scripts/enter-context-os.js"
+    ]
 };
+urls["http://localhost:51346/mi_cuenta.aspx"] = urls["http://www.almafrigo.cl/mi_cuenta.aspx*"];
 var url = Object.keys(urls).find(function (k) {
     var pts = k.split('*');
     var lpos = 0;
@@ -15,6 +25,6 @@ var url = Object.keys(urls).find(function (k) {
         return (lpos = document.location.href.indexOf(p, lpos + (i == 0 ? 0 : pts[i - 1].length))) > -1;
     });
 });
-if (url && urls[url] !== '')
-    SystemJS.import(chrome.extension.getURL('/contents_scripts/' + urls[url]));
+if (url && urls[url] && urls[url].length > 0)
+    urls[url].forEach(function (u) { return SystemJS.import(chrome.extension.getURL(u)); });
 //# sourceMappingURL=systemjs.import.content.js.map
