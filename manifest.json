@@ -28,7 +28,7 @@
 				"https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi*"
 			],
 			"js": [
-				"scripts_npm/jquery.min.js",
+				"node_modules/jquery/dist/jquery.min.js",
 				"contents_scripts/content-form-dte.js"
 			]
 		},
@@ -37,15 +37,15 @@
 				"https://www1.sii.cl/cgi-bin/Portal001/mipeSendXML.cgi*"
 			],
 			"js": [
-				"scripts_npm/jquery.min.js",
-				"scripts_npm/jquery-ui.min.js",
-				"scripts_npm/BigInteger.min.js",
-				"scripts_npm/zxing-pdf417.js",
-				"scripts_npm/pdf.combined.js",
+				"node_modules/jquery/dist/jquery.min.js",
+				"node_modules/jquery-ui/themes/base/minified/jquery-ui.min.js",
+				"node_modules/big-integer/BigInteger.min.js",
+				"back/zxing-pdf417.js",
+				"node_modules/pdfjs-dist/build/pdf.combined.js",
 				"contents_scripts/content-dte-emitido.js"
 			],
 			"css": [
-				"scripts_npm/jquery-ui.min.css"
+				"node_modules/jquery-ui/themes/base/minified/jquery-ui.min.css"
 			]
 		},
 		{
@@ -70,7 +70,7 @@
 	],
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"web_accessible_resources": [
-		"*"
+		"node_modules", "back"
 	],
 	"externally_connectable": {
 		"matches": [

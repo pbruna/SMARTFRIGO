@@ -1,2 +1,2 @@
 declare var SystemJS: any
-SystemJS.import('background/background');
+SystemJS.import('back/background');

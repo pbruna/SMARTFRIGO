@@ -6,15 +6,15 @@
     <!-- 1. Load libraries -->
       <!--Polyfill(s) for older browsers -->
 
-    <script src="scripts_npm/shim.min.js"></script>
-    <script src="scripts_npm/zone.js"></script>
-    <script src="scripts_npm/Reflect.js"></script>
+    <script src="node_modules/core-js/client/shim.min.js" ></script>
+    <script src="node_modules/zone.js/dist/zone.min.js?main=browser"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js" minify="true"></script>
     <!-- 2. Configure SystemJS -->
     <script src="node_modules/systemjs/dist/system.src.js" keep="false"></script>
     <script src="config.js" keep="false"></script>
-    <script src="scripts/index.js" prodsrc="app/bundle.js" ></script>
+    <script src="enter_scripts/systemjs.import.popup.js" bundle="app/main.js" ></script>
 
-    <link rel="stylesheet" type="text/css" href="scripts_npm/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
   </head>
   <!-- 3. Display the application -->
   <body style="width: 800px; height: 600px"> 

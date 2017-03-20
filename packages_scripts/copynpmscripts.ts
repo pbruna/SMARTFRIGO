@@ -1,14 +1,15 @@
+import * as copyfiles from 'copy-files'
+import * as copydir from 'copy-dir'
+
 (function copy() {
-    var copy = require('copy-files');
-    var copydir = require('copy-dir');
     var root = process.cwd();
 
-    copy({
+    copyfiles({
         files: {
             "Reflect.js": root + '/node_modules/reflect-metadata/Reflect.js',
             "shim.min.js": root + '/node_modules/core-js/client/shim.min.js',
             "system.js": root + '/node_modules/systemjs/dist/system.js',
-            'zone.js': root + '/node_modules/zone.js/dist/zone.js',
+            'zone.js': root + '/node_modules/zone.js/dist/zone.min.js',
             "bootstrap.min.js": root + '/node_modules/bootstrap/dist/js/bootstrap.min.js',
             "bootstrap.min.css": root + '/node_modules/bootstrap/dist/css/bootstrap.min.css',
             'jquery.min.js': root + '/node_modules/jquery/dist/jquery.min.js',

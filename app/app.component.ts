@@ -6,10 +6,10 @@ enableProdMode();
 @Component({
     selector: 'smart-frigo',
     template: `<div>
-    <div class="divClass" @flyLeft="showO ? 'void' : 'in' " >
+    <div class="divClass" [@flyLeft]="showO ? 'void' : 'in' " >
         <buscar-ordenes (onSelectOrden)="SeleccionarOrden($event)"></buscar-ordenes>
     </div>
-    <div class="divClass" @flyRight="'in'" *ngIf="showO">
+    <div class="divClass" [@flyRight]="'in'" *ngIf="showO">
         <orden [orden]="orden" (volver)="showO = false"></orden>
     </div>
   </div>`,

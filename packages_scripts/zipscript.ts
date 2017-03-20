@@ -1,64 +1,58 @@
 import * as fs from 'fs'
 import * as archiver from 'archiver'
 import * as uglify from 'uglify-js2'
+import * as copyfiles from 'copy-files'
+import { Observable } from 'rxjs'
+
+
+var zip = archiver('zip');
+
+var files = ['index.html', 'manifest.json', 'back\\zxing-pdf417.js', /(fonts|app|back).*/,]
+var exclude = /.*\.(js\.map|ts|js)$/
+var root = process.cwd();
+var addCount = 0;
+var totalCount = 0;
+
+function addPath(path: string): Observable<string> {
+
+    return Observable.bindNodeCallback<string[]>(fs.readdir)(path)
+        .flatMap(fls => fls)
+        .map(name => path + "\\" + name)
+        .filter(fullpath => files.some(e => {
+            if (typeof e === 'string')
+                return fullpath.toUpperCase() === (root + '\\' + e).toUpperCase();
+            else
+                return e.test(fullpath) && !exclude.test(fullpath)
+
+        }))
+        .flatMap(fullpath => Observable.forkJoin(Observable.bindNodeCallback(fs.stat)(fullpath), Observable.of(fullpath)))
+        .flatMap(x => x[0].isDirectory() ? addPath(x[1]) : Observable.of(x[1]))
 
 
 
-(function () {
-    var zip = archiver('zip');
 
-    var files = ['index.html', 'styles.css', 'manifest.json', 'bundle.js', /(fonts|images|scripts_npm|back|app).*/,]
-    var exclude = /(back\\context-pruebas.js|back\\DoScan.js|back\\background.js|back\\factura-electronica.js|map|ts|app\\.*js)$/
-    var root = process.cwd();
-    var addCount = 0;
-    var totalCount = 0;
+}
 
-    var addPath = function (path: string) {
-        if (path !== root) {
-            if (!files.some(val => {
-                if (typeof val !== 'string')
-                    return val.test(path)
-                return false;
-            })) return;
-        }
-        fs.readdir(path, function (err, fls) {
-            fls.forEach(name => {
-                let fullPath = path + "\\" + name;
-                fs.stat(fullPath, function (err, stats) {
-                    if (err) return sendErr(err);
-                    if (stats.isDirectory()) addPath(fullPath)
-                    else if (stats.isFile() && files.some(e => {
-                        if (typeof e === 'string') return fullPath.toUpperCase() === (root + '\\' + e).toUpperCase();
-                        else return e.test(fullPath) && !exclude.test(fullPath);
-                    })) {
-                        addCount++;
-                        if (/back.*\.js$/.test(fullPath))
-                            zip.append(uglify.minify(fullPath).code, { name: fullPath.substr(root.length) })
-                        else
-                            zip.append(fs.createReadStream(fullPath), { name: fullPath.substr(root.length) })
-                    }
-                })
-            })
-        })
+var output = fs.createWriteStream('SMARTFRIGO.zip');
+output.on('close', function () {
+    console.log('archiver has been finalized and the output file descriptor has closed.');
+});
 
-    }
 
-    var output = fs.createWriteStream('SMARTFRIGO.zip');
-    output.on('close', function () {
-        console.log('archiver has been finalized and the output file descriptor has closed.');
-    });
+var sendErr = function (err) {
+    console.log(err.stack);
+    process.exit(1)
 
-    zip.on('entry', function () {
-        if (++totalCount == addCount) zip.finalize();
-    })
+}
 
-    var sendErr = function (err) {
-        console.log(err.stack);
-        process.exit(1)
+zip.pipe(output);
+addPath(root).subscribe(
+    x => {
+        console.log(x)
+        zip.append(/.*\.js$/.test(x) ? uglify.minify(x).code : fs.createReadStream(x),
+            { name: x.substr(root.length) })
+    },
+    err => console.log(err),
+    () => zip.finalize()
+)
 
-    }
-
-    zip.pipe(output);
-    addPath(root)
-
-})()

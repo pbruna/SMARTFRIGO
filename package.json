@@ -10,7 +10,7 @@
     "build": "npm run tsc && npm run copyscripts && npm run cr_bundle && npm run cr_bundle_back",
     "cr_bundle": "browserify app/main.js | uglifyjs --screw-ie8 --compress --mangle  > scripts_npm/bundle.js",
     "cr_bundle_back": "browserify back/background.js | uglifyjs --screw-ie8 --compress --mangle > back/bundle.js",
-    "copyscripts": "node packagesScripts/copynpmscripts.js"
+    "copyscripts": "node packages_scripts/copynpmscripts.js"
   },
   "license": "ISC",
   "dependencies": {
