@@ -64,17 +64,19 @@
 		"storage",
 		"tabs",
 		"http://www.almafrigo.cl/*",
+		"https://www.almafrigo.cl/*",
 		"https://www1.sii.cl/cgi-bin/Portal001/*",
 		"http://localhost:3001/*",
 		"https://34.200.105.231/*"
 	],
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"web_accessible_resources": [
-		"node_modules", "back"
+		"node_modules",
+		"back"
 	],
 	"externally_connectable": {
 		"matches": [
-			"http://localhost/*",
+			//"http://localhost/*",
 			"http://www.almafrigo.cl/*",
 			"https://www.almafrigo.cl/*"
 		]

@@ -1,6 +1,5 @@
 node_modules/
 typings/
-scripts_npm/
 jspm_packages/
 
 # map.js y js
@@ -16,5 +15,5 @@ packages_scripts/**/*.js
 packages_scripts/**/*.js.map
 
 
-./SMARTFRIGO.zip
+SMARTFRIGO.zip
 

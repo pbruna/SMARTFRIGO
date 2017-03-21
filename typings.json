@@ -9,5 +9,8 @@
     "jquery": "registry:dt/jquery#1.10.0+20160704162008",
     "jqueryui": "registry:dt/jqueryui#1.9.0+20160627030821",
     "node": "registry:env/node#6.0.0+20170213133316"
+  },
+  "dependencies": {
+    "xmldom": "registry:dt/xmldom#0.1.22+20170307090909"
   }
 }

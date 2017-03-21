@@ -50,7 +50,10 @@
     "browserify-shim": "^3.8.12",
     "concurrently": "^2.0.0",
     "lite-server": "^2.2.0",
-    "retyped-archiver-tsd-ambient": "^0.15.0-0"
+    "retyped-archiver-tsd-ambient": "^0.15.0-0",
+    "systemjs-builder": "^0.16.4",
+    "xmldom": "^0.1.27",
+    "xmlserializer": "^0.6.0"
   },
   "browser": {
     "customPlugin": "path/to/custom/plugin",
