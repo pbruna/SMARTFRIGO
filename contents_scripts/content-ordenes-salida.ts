@@ -389,66 +389,67 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
 }
 
 function getFolioPedidoSiguiente(): Observable<number> {
-    return getDeFontanaSesion()
-        .flatMap(sesion => Observable.create((obs: Observer<number>) => {
-            let xhr = new XMLHttpRequest()
-            xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
-            xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
-            xhr.responseType = 'document'
-            xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    try {
-                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
-                    } catch (e) {
-                        obs.error('Se produjo un error de compilación en la obtención de folios')
-                    }
+    return Observable.of(10)
+    // return getDeFontanaSesion()
+    //     .flatMap(sesion => Observable.create((obs: Observer<number>) => {
+    //         let xhr = new XMLHttpRequest()
+    //         xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
+    //         xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
+    //         xhr.responseType = 'document'
+    //         xhr.onload = () => {
+    //             if (xhr.status !== 200) {
+    //                 try {
+    //                     obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+    //                 } catch (e) {
+    //                     obs.error('Se produjo un error de compilación en la obtención de folios')
+    //                 }
 
-                    obs.complete();
-                    return
-                }
-                try {
-                    let num = 0;
-                    let numeros = xhr.responseXML.getElementsByTagName('numero')
-                    for (let k = 0; k < numeros.length; ++k)
-                        num = Math.max(num, parseInt(numeros.item(k).textContent))
-                    obs.next(num + 1)
-                } catch (e) {
-                    obs.error(e)
-                }
+    //                 obs.complete();
+    //                 return
+    //             }
+    //             try {
+    //                 let num = 0;
+    //                 let numeros = xhr.responseXML.getElementsByTagName('numero')
+    //                 for (let k = 0; k < numeros.length; ++k)
+    //                     num = Math.max(num, parseInt(numeros.item(k).textContent))
+    //                 obs.next(num + 1)
+    //             } catch (e) {
+    //                 obs.error(e)
+    //             }
 
-                obs.complete();
+    //             obs.complete();
 
-            }
-            xhr.onerror = e => {
-                obs.error(e)
-                obs.complete();
-            }
-            xhr.send(`<?xml version="1.0" encoding="utf-8"?>
-            <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
-                xmlns:tem="http://tempuri.org/"
-                xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
-                <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
-                    <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
-                    <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
-                    </soap:Header>
-                <soap:Body>
-                    <tem:GetPedidos>
-                        <tem:sesion>
-                            <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
-                            <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
-                            <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
-                            <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
-                        </tem:sesion>
-                        <tem:numero></tem:numero>
-                        <tem:idCliente></tem:idCliente>
-                        <tem:fechaIngreso></tem:fechaIngreso>
-                        <tem:fechaExpiracion></tem:fechaExpiracion>
-                        <tem:idVendedor></tem:idVendedor>
-                        <tem:fechaFinal></tem:fechaFinal>
-                    </tem:GetPedidos>
-                </soap:Body>
-            </soap:Envelope>`)
-        }))
+    //         }
+    //         xhr.onerror = e => {
+    //             obs.error(e)
+    //             obs.complete();
+    //         }
+    //         xhr.send(`<?xml version="1.0" encoding="utf-8"?>
+    //         <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+    //             xmlns:tem="http://tempuri.org/"
+    //             xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
+    //             <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
+    //                 <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
+    //                 <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
+    //                 </soap:Header>
+    //             <soap:Body>
+    //                 <tem:GetPedidos>
+    //                     <tem:sesion>
+    //                         <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
+    //                         <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
+    //                         <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
+    //                         <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
+    //                     </tem:sesion>
+    //                     <tem:numero></tem:numero>
+    //                     <tem:idCliente></tem:idCliente>
+    //                     <tem:fechaIngreso></tem:fechaIngreso>
+    //                     <tem:fechaExpiracion></tem:fechaExpiracion>
+    //                     <tem:idVendedor></tem:idVendedor>
+    //                     <tem:fechaFinal></tem:fechaFinal>
+    //                 </tem:GetPedidos>
+    //             </soap:Body>
+    //         </soap:Envelope>`)
+    //     }))
 }
 
 

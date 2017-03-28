@@ -5,12 +5,7 @@
     "start": "npm run copyscripts tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
     "lite": "lite-server",
     "postinstall": "typings install",
-    "tsc": "tsc",
-    "zipit": "npm run build && node packagesScripts/zipscript.js",
-    "build": "npm run tsc && npm run copyscripts && npm run cr_bundle && npm run cr_bundle_back",
-    "cr_bundle": "browserify app/main.js | uglifyjs --screw-ie8 --compress --mangle  > scripts_npm/bundle.js",
-    "cr_bundle_back": "browserify back/background.js | uglifyjs --screw-ie8 --compress --mangle > back/bundle.js",
-    "copyscripts": "node packages_scripts/copynpmscripts.js"
+    "build": "tsc && node packages_scripts/zipscript.js"
   },
   "license": "ISC",
   "dependencies": {
@@ -51,6 +46,9 @@
     "concurrently": "^2.0.0",
     "lite-server": "^2.2.0",
     "retyped-archiver-tsd-ambient": "^0.15.0-0",
+    "rollup": "^0.41.6",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^2.0.0",
     "systemjs-builder": "^0.16.4",
     "xmldom": "^0.1.27",
     "xmlserializer": "^0.6.0"

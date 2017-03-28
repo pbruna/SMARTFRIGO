@@ -1,2 +1,8 @@
 declare var SystemJS: any
-SystemJS.import('back/background');
+if (typeof SystemJS !== 'undefined') SystemJS.import('back/background');
+
+
+if (typeof module === 'undefined') var exports = {}
+export function getBundle(): string {
+    return 'back/background.js'
+}
