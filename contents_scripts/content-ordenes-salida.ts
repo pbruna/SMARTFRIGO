@@ -3,13 +3,14 @@ import { Observable } from 'rxjs/Observable'
 import { Observer } from 'rxjs/Observer'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/max'
 import 'rxjs/add/operator/toArray'
 import 'rxjs/add/operator/mergeMap'
 import 'rxjs/add/observable/from'
 import 'rxjs/add/observable/forkJoin'
 import 'rxjs/add/observable/of'
 
-
+let tiposPedidos = ["PENDIENTE_AUTORIZACION_FINANCIERA","APROBADO_COMERCIAL","APROBADO_FINANCIERA","DESPACHADO_EN_FACTURACION_EN_PRESTACION","DESPACHADO_EN_FACTURACION_PRESTADO","DESPACHADO_EN_FACTURACION","DESPACHADO_FACTURADO_EN_PRESTACION","DESPACHADO_FACTURADO_PRESTADO","DESPACHADO_FACTURADO","EN_DESPACHO_EN_FACTURACION_EN_PRESTACION","EN_DESPACHO_EN_FACTURACION_PRESTADO","EN_DESPACHO_EN_FACTURACION","EN_DESPACHO_FACTURADO_EN_PRESTACION","EN_DESPACHO_FACTURADO_PRESTADO","EN_DESPACHO_FACTURADO","CERRADO_MANUAL","ANULADO","PENDIENTE","RECHAZADO_COMERCIAL","RECHAZADO_FINANCIERO","EN_FACTURACION_EN_PRESTACION","EN_FACTURACION_PRESTADO","FACTURADO_EN_PRESTACION","FACTURADO_PRESTADO"]
 
 let cliente: {
     rut: string,
@@ -23,7 +24,8 @@ let cliente: {
             },
             separarXImpuesto: boolean,
             sesion: sesion,
-            url: string
+            url: string,
+            tipoDocumento: string
         },
 
     }
@@ -114,9 +116,11 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                 .do(x => sendMessageBackToPage('Obteniendo datos de contacto para cliente'))
                 .flatMap(x => getContactoClienteDeFontana(x))
                 .do(x => sendMessageBackToPage('Cliente Obtenido correctamente')),
-            Observable.of(null)
+            Observable.of(tiposPedidos)
                 .do(x => sendMessageBackToPage('Obteniendo Folio de Pedidos'))
-                .flatMap(x => getFolioPedidoSiguiente())
+                .flatMap(x => x)
+                .flatMap(x => getFolioPedidoSiguiente(x))
+                .max()
                 .do(x => sendMessageBackToPage('Folio de pedido siguiente ' + x))
                 .do(x => folioPedido = x)))
         .do(x => clienteDF = x[1])
@@ -329,6 +333,7 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
                 try {
                     let elem = xhr.responseXML.getElementsByTagName('GetContactosFichaClienteResult').item(0);
                     if (elem.childNodes.length > 0) {
+                        cliDF.Rut = elem.getElementsByTagName('IDFichaCliente').item(0).textContent
                         cliDF.IDContactoFicha = elem.getElementsByTagName('IDContacto').item(0).textContent
                         obs.next(cliDF)
                     } else obs.error('No se ha encontrado ningún contacto para el cliente')
@@ -388,68 +393,62 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
         }))
 }
 
-function getFolioPedidoSiguiente(): Observable<number> {
-    return Observable.of(10)
-    // return getDeFontanaSesion()
-    //     .flatMap(sesion => Observable.create((obs: Observer<number>) => {
-    //         let xhr = new XMLHttpRequest()
-    //         xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
-    //         xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
-    //         xhr.responseType = 'document'
-    //         xhr.onload = () => {
-    //             if (xhr.status !== 200) {
-    //                 try {
-    //                     obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
-    //                 } catch (e) {
-    //                     obs.error('Se produjo un error de compilación en la obtención de folios')
-    //                 }
+function getFolioPedidoSiguiente(estado: string): Observable<number> {
+    return getDeFontanaSesion()
+        .flatMap(sesion => Observable.create((obs: Observer<number>) => {
+            let xhr = new XMLHttpRequest()
+            xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
+            xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
+            xhr.responseType = 'document'
+            xhr.onload = () => {
+                if (xhr.status !== 200) {
+                    try {
+                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    } catch (e) {
+                        obs.error('Se produjo un error de compilación en la obtención de folios')
+                    }
 
-    //                 obs.complete();
-    //                 return
-    //             }
-    //             try {
-    //                 let num = 0;
-    //                 let numeros = xhr.responseXML.getElementsByTagName('numero')
-    //                 for (let k = 0; k < numeros.length; ++k)
-    //                     num = Math.max(num, parseInt(numeros.item(k).textContent))
-    //                 obs.next(num + 1)
-    //             } catch (e) {
-    //                 obs.error(e)
-    //             }
+                    obs.complete();
+                    return
+                }
+                try {
+                    let num = 0;
+                    let numeros = xhr.responseXML.getElementsByTagName('numero')
+                    for (let k = 0; k < numeros.length; ++k)
+                        num = Math.max(num, parseInt(numeros.item(k).textContent))
+                    obs.next(num + 1)
+                } catch (e) {
+                    obs.error(e)
+                }
 
-    //             obs.complete();
+                obs.complete();
 
-    //         }
-    //         xhr.onerror = e => {
-    //             obs.error(e)
-    //             obs.complete();
-    //         }
-    //         xhr.send(`<?xml version="1.0" encoding="utf-8"?>
-    //         <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
-    //             xmlns:tem="http://tempuri.org/"
-    //             xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
-    //             <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
-    //                 <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
-    //                 <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
-    //                 </soap:Header>
-    //             <soap:Body>
-    //                 <tem:GetPedidos>
-    //                     <tem:sesion>
-    //                         <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
-    //                         <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
-    //                         <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
-    //                         <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
-    //                     </tem:sesion>
-    //                     <tem:numero></tem:numero>
-    //                     <tem:idCliente></tem:idCliente>
-    //                     <tem:fechaIngreso></tem:fechaIngreso>
-    //                     <tem:fechaExpiracion></tem:fechaExpiracion>
-    //                     <tem:idVendedor></tem:idVendedor>
-    //                     <tem:fechaFinal></tem:fechaFinal>
-    //                 </tem:GetPedidos>
-    //             </soap:Body>
-    //         </soap:Envelope>`)
-    //     }))
+            }
+            xhr.onerror = e => {
+                obs.error(e)
+                obs.complete();
+            }
+            xhr.send(`<?xml version="1.0" encoding="utf-8"?>
+            <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+                xmlns:tem="http://tempuri.org/"
+                xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
+                <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
+                    <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
+                    <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
+                    </soap:Header>
+                <soap:Body>
+                    <tem:GetPedidos>
+                        <tem:sesion>
+                            <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
+                            <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
+                            <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
+                            <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
+                        </tem:sesion>
+                        <tem:estado>${estado}</tem:estado>
+                    </tem:GetPedidos>
+                </soap:Body>
+            </soap:Envelope>`)
+        }))
 }
 
 
@@ -501,7 +500,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
                         </tem:sesion>
                         <tem:pedido>
-                            <ws1:Afecto>${afecto}</ws1:Afecto>
+                            <ws1:Afecto>0</ws1:Afecto>
                             <ws1:Campos>
                                 <!--Zero or more repetitions:-->
                                 <ws1:PedidoCampo>    
@@ -524,7 +523,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
                             <ws1:Estado>PENDIENTE</ws1:Estado>
-                            <ws1:Exento>0</ws1:Exento>                           
+                            <ws1:Exento>${afecto}</ws1:Exento>                           
                             <ws1:Fecha>${os.FechaIngreso.toISOString()}</ws1:Fecha>
                             <ws1:FechaExpiracion>${new Date(os.FechaIngreso.getTime() + 1000 * 60 * 60 * 24 * 365).toISOString()}</ws1:FechaExpiracion>
                             <ws1:IDCondicionPago>${cliDF.IDCondicionPago}</ws1:IDCondicionPago>
@@ -534,7 +533,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:IDListaPrecio>1</ws1:IDListaPrecio>
                             <ws1:IDLocal>Local</ws1:IDLocal>
                             <ws1:IDMonedaIngreso>PESO</ws1:IDMonedaIngreso>
-                            <ws1:IDTipoDocumento>XFVA</ws1:IDTipoDocumento>
+                            <ws1:IDTipoDocumento>${cliente.Campos.defontana.tipoDocumento}</ws1:IDTipoDocumento>
                             <ws1:IDVendedor>${cliDF.IDVendedor}</ws1:IDVendedor>
                             <ws1:Numero>${numero}</ws1:Numero>
                             <ws1:ObservacionDespacho>${os.Direccion}</ws1:ObservacionDespacho>
