@@ -1,5 +1,4 @@
-
-import Globals = require('./objetos');
+import * as Globals from './objetos';
 export const webServiceURL = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx';
 
 export function createAFObject(Obj) {
@@ -13,12 +12,11 @@ export function createAFObject(Obj) {
     if (Obj.prototypeName == undefined) return Obj;
 
     var o;
-    let gl = Globals;
     try {
         if (typeof Obj.prototypeName == 'function')
             o = new Obj.prototypeName();
-        else 
-            o = eval('new gl.' + Obj.prototypeName.substr(Obj.prototypeName.lastIndexOf('.') + 1) + '();');
+        else
+            o = new Globals[Obj.prototypeName.substr(Obj.prototypeName.lastIndexOf('.') + 1)]()
     } catch (e) {
         return Obj;
     }

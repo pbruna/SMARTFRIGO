@@ -10,8 +10,6 @@ import 'rxjs/add/observable/from'
 import 'rxjs/add/observable/forkJoin'
 import 'rxjs/add/observable/of'
 
-let tiposPedidos = ["PENDIENTE_AUTORIZACION_FINANCIERA","APROBADO_COMERCIAL","APROBADO_FINANCIERA","DESPACHADO_EN_FACTURACION_EN_PRESTACION","DESPACHADO_EN_FACTURACION_PRESTADO","DESPACHADO_EN_FACTURACION","DESPACHADO_FACTURADO_EN_PRESTACION","DESPACHADO_FACTURADO_PRESTADO","DESPACHADO_FACTURADO","EN_DESPACHO_EN_FACTURACION_EN_PRESTACION","EN_DESPACHO_EN_FACTURACION_PRESTADO","EN_DESPACHO_EN_FACTURACION","EN_DESPACHO_FACTURADO_EN_PRESTACION","EN_DESPACHO_FACTURADO_PRESTADO","EN_DESPACHO_FACTURADO","CERRADO_MANUAL","ANULADO","PENDIENTE","RECHAZADO_COMERCIAL","RECHAZADO_FINANCIERO","EN_FACTURACION_EN_PRESTACION","EN_FACTURACION_PRESTADO","FACTURADO_EN_PRESTACION","FACTURADO_PRESTADO"]
-
 let cliente: {
     rut: string,
     fantasia: string,
@@ -25,7 +23,8 @@ let cliente: {
             separarXImpuesto: boolean,
             sesion: sesion,
             url: string,
-            tipoDocumento: string
+            tipoDocumento: string,
+            agregaIdPedido: boolean
         },
 
     }
@@ -95,7 +94,9 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
     os.Items.forEach(it => itms[it.UnidadLog.Codigo] = it)
     let clienteDF: clienteDF
     let folioPedido: number
-    return Observable.of('Iniciando sesión en De Fontana')
+    let arts: { [cod: string]: articuloDF }
+    return Observable
+        .of('Iniciando sesión en De Fontana')
         .do(x => sendMessageBackToPage(x))
         .flatMap(x => getDeFontanaSesion())
         .do(x => sendMessageBackToPage('Sesión iniciada correctamente'))
@@ -109,30 +110,25 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                         .do(art => sendMessageBackToPage(`OBSERVACIÓN:Se ha creado el artículo ${art.Codigo} ${itms[art.Codigo].UnidadLog.Nombre}`))
                     : Observable.of(art))
                 .do(art => sendMessageBackToPage(`Artículo ${art.Codigo} ${itms[art.Codigo].UnidadLog.Nombre} confirmado`))
+                .do(art => itms[art.Codigo].UnidadLog['unidaddf'] = art.Unidad)
                 .toArray(),
             Observable.of(os.Cliente.RUT)
                 .do(x => sendMessageBackToPage('Obteniendo datos de cliente'))
                 .flatMap(rut => getClienteDeFontana(rut))
                 .do(x => sendMessageBackToPage('Obteniendo datos de contacto para cliente'))
                 .flatMap(x => getContactoClienteDeFontana(x))
-                .do(x => sendMessageBackToPage('Cliente Obtenido correctamente')),
-            Observable.of(tiposPedidos)
-                .do(x => sendMessageBackToPage('Obteniendo Folio de Pedidos'))
-                .flatMap(x => x)
-                .flatMap(x => getFolioPedidoSiguiente(x))
-                .max()
-                .do(x => sendMessageBackToPage('Folio de pedido siguiente ' + x))
-                .do(x => folioPedido = x)))
-        .do(x => clienteDF = x[1])
-        .map(x => cliente.Campos.defontana.separarXImpuesto && !os.Cliente.EsRet5PorCarne 
-            ? os.Items.reduce((acc, it) => {
-                acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
-                return acc
-            }, {})
-            : { '': os.Items })
-        .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
-        .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
-        .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF, folioPedido++))
+                .do(x => sendMessageBackToPage('Cliente Obtenido correctamente')))
+            .do(x => clienteDF = x[1])
+            .map(x => cliente.Campos.defontana.separarXImpuesto && !os.Cliente.EsRet5PorCarne
+                ? os.Items.reduce((acc, it) => {
+                    if (it.Bultos.length > 0)
+                        acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
+                    return acc
+                }, {})
+                : { '': os.Items.filter(it => it.Bultos.length > 0) })
+            .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
+            .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
+            .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF)))
 
 
 
@@ -393,67 +389,9 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
         }))
 }
 
-function getFolioPedidoSiguiente(estado: string): Observable<number> {
-    return getDeFontanaSesion()
-        .flatMap(sesion => Observable.create((obs: Observer<number>) => {
-            let xhr = new XMLHttpRequest()
-            xhr.open('post', cliente.Campos.defontana.url + '/SID/Service.svc')
-            xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
-            xhr.responseType = 'document'
-            xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    try {
-                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
-                    } catch (e) {
-                        obs.error('Se produjo un error de compilación en la obtención de folios')
-                    }
-
-                    obs.complete();
-                    return
-                }
-                try {
-                    let num = 0;
-                    let numeros = xhr.responseXML.getElementsByTagName('numero')
-                    for (let k = 0; k < numeros.length; ++k)
-                        num = Math.max(num, parseInt(numeros.item(k).textContent))
-                    obs.next(num + 1)
-                } catch (e) {
-                    obs.error(e)
-                }
-
-                obs.complete();
-
-            }
-            xhr.onerror = e => {
-                obs.error(e)
-                obs.complete();
-            }
-            xhr.send(`<?xml version="1.0" encoding="utf-8"?>
-            <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
-                xmlns:tem="http://tempuri.org/"
-                xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core" >
-                <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
-                    <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
-                    <wsa:Action>http://tempuri.org/IService/GetPedidos</wsa:Action>
-                    </soap:Header>
-                <soap:Body>
-                    <tem:GetPedidos>
-                        <tem:sesion>
-                            <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
-                            <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
-                            <ws:IDSesion>${sesion.IDSesion}</ws:IDSesion>
-                            <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
-                        </tem:sesion>
-                        <tem:estado>${estado}</tem:estado>
-                    </tem:GetPedidos>
-                </soap:Body>
-            </soap:Envelope>`)
-        }))
-}
-
-
-function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF, numero: number): Observable<boolean> {
+function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF): Observable<boolean> {
     os.FechaIngreso = new Date(os.FechaIngreso)
+    os.FechaDespacho = new Date(os.FechaDespacho)
     items.forEach(it => it['facturado'] = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
         (b.UnidadLogistica.TipoUnidad === 1 ? b.PesoNeto ? b.PesoNeto - (b.Tara || 0) : b.PesoInformado || 0
             : b.UnidadLogistica.Unidades || 1), 0)) / 100)
@@ -471,7 +409,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                 }
                 let art: { Rut: string, Razon: string }
                 try {
-                    xhr.responseXML.getElementsByTagName('GrabaPedidoResult').item(0);
+                    xhr.responseXML.getElementsByTagName('GrabaPedidoResultRetorno').item(0);
                     obs.next(true);
                 } catch (e) {
                     obs.error(e)
@@ -489,10 +427,10 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                 xmlns:ws1="http://schemas.datacontract.org/2004/07/WS.Ventas">
                 <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
                     <wsa:To>${cliente.Campos.defontana.url}/SID/Service.svc</wsa:To>
-                    <wsa:Action>http://tempuri.org/IService/GrabaPedido</wsa:Action>
+                    <wsa:Action>http://tempuri.org/IService/GrabaPedidoRetorno</wsa:Action>
                     </soap:Header>
                 <soap:Body>
-                    <tem:GrabaPedido>
+                    <tem:GrabaPedidoRetorno>
                         <tem:sesion>
                             <ws:IDCliente>${sesion.IDCliente}</ws:IDCliente>
                             <ws:IDEmpresa>${sesion.IDEmpresa}</ws:IDEmpresa>
@@ -500,42 +438,40 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
                         </tem:sesion>
                         <tem:pedido>
-                            <ws1:Afecto>0</ws1:Afecto>
+                            <ws1:Afecto>0</ws1:Afecto>${cliente.Campos.defontana.agregaIdPedido ? `
                             <ws1:Campos>
-                                <!--Zero or more repetitions:-->
                                 <ws1:PedidoCampo>    
                                     <ws1:IDCampo>1</ws1:IDCampo>    
                                     <ws1:Valor>${os.Id}</ws1:Valor>
                                 </ws1:PedidoCampo>
-                            </ws1:Campos>
-                            <ws1:Detalles>
-                            <!--Zero or more repetitions:-->
-                            ${items.reduce((acc, va, i) => {
+                            </ws1:Campos>` : ''}                            
+                            <ws1:Detalles>${items.reduce((acc, va, i) => {
                     return acc + `
-                                    <ws1:PedidoDetalle>    
-                                        <ws1:Cantidad>${va['facturado']}</ws1:Cantidad>    
-                                        <ws1:Comentario>Item en ${va.Bultos ? va.Bultos.length : 0} bultos</ws1:Comentario>    
-                                        <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
-                                        <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
-                                        <ws1:PrecioUnitario>${va.Precio}</ws1:PrecioUnitario>    
-                                    </ws1:PedidoDetalle>
-                                    `}, '')}
+                               <ws1:PedidoDetalle>    
+                                    <ws1:Cantidad>${va['facturado']}</ws1:Cantidad>    
+                                    <ws1:Comentario>Item en ${va.Bultos ? va.Bultos.length : 0} bultos</ws1:Comentario>    
+                                    <ws1:FechaEntrega>${os.FechaDespacho.toISOString().substr(0, 10)}</ws1:FechaEntrega>
+                                    <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
+                                    <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
+                                    <ws1:PrecioUnitario>${va.Precio}</ws1:PrecioUnitario>
+                                    <ws1:SubTotal>${Math.round(va.Precio * va['facturado'] * 100) / 100}</ws1:SubTotal>    
+                                </ws1:PedidoDetalle>`}, '')}
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
                             <ws1:Estado>PENDIENTE</ws1:Estado>
                             <ws1:Exento>${afecto}</ws1:Exento>                           
-                            <ws1:Fecha>${os.FechaIngreso.toISOString()}</ws1:Fecha>
-                            <ws1:FechaExpiracion>${new Date(os.FechaIngreso.getTime() + 1000 * 60 * 60 * 24 * 365).toISOString()}</ws1:FechaExpiracion>
+                            <ws1:Fecha>${os.FechaIngreso.toISOString().substr(0, 10)}</ws1:Fecha>
+                            <ws1:FechaExpiracion>${new Date(os.FechaIngreso.getTime() + 1000 * 60 * 60 * 24 * 365).toISOString().substr(0, 10)}</ws1:FechaExpiracion>
                             <ws1:IDCondicionPago>${cliDF.IDCondicionPago}</ws1:IDCondicionPago>
                             <ws1:IDContactoFicha>${cliDF.IDContactoFicha}</ws1:IDContactoFicha>
                             <ws1:IDEmpresa>ANDESMEAT</ws1:IDEmpresa>
-                            <ws1:IDFichaCliente>${cliDF.Rut}</ws1:IDFichaCliente>
+                            <ws1:IDFichaCliente>${cliDF.IDFicha}</ws1:IDFichaCliente>
                             <ws1:IDListaPrecio>1</ws1:IDListaPrecio>
                             <ws1:IDLocal>Local</ws1:IDLocal>
                             <ws1:IDMonedaIngreso>PESO</ws1:IDMonedaIngreso>
                             <ws1:IDTipoDocumento>${cliente.Campos.defontana.tipoDocumento}</ws1:IDTipoDocumento>
                             <ws1:IDVendedor>${cliDF.IDVendedor}</ws1:IDVendedor>
-                            <ws1:Numero>${numero}</ws1:Numero>
+                            <ws1:Numero>0</ws1:Numero>
                             <ws1:ObservacionDespacho>${os.Direccion}</ws1:ObservacionDespacho>
                             <ws1:ObservacionFacturacion>Total Bultos ${items.reduce((acc, it) => acc + (it.Bultos ? it.Bultos.length : 0), 0).toLocaleString()}
 Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleString()}
@@ -546,7 +482,7 @@ Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleStr
                             <ws1:Subtotal>${afecto}</ws1:Subtotal>
                             <ws1:Total>${afecto}</ws1:Total>
                         </tem:pedido>
-                    </tem:GrabaPedido>
+                    </tem:GrabaPedidoRetorno>
                 </soap:Body>
             </soap:Envelope>`)
         }))
@@ -557,17 +493,6 @@ function sendMessageBackToPage(msg: string) {
 }
 
 
-/*
-savePedidoEnDeFontana(null).subscribe(
-    x => console.log(x),
-    err => console.log(err)
-)
-
-getClienteDeFontana('77682620-0').subscribe(
-    x => console.log(x),
-    err => console.log(err)
-)
-*/
 
 document.addEventListener('EnviarOSaDeFontana', (e: any) => {
     let Orden = e.detail.Orden;

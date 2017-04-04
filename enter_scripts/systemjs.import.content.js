@@ -1,4 +1,3 @@
-"use strict";
 var urls = {
     "https://www1.sii.cl/cgi-bin/Portal001/mipeSendXML.cgi*": "contents_scripts/content-dte-emitido.js",
     "https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi*": "contents_scripts/content-form-dte.js",
@@ -18,8 +17,8 @@ if (typeof document !== 'undefined') {
 }
 if (typeof module === 'undefined')
     var exports = {}; //si se está ejecutando en el navegador evitamos que export genere un error
-function getBundle(url) {
+//si se está ejecutando en el navegador evitamos que export genere un error
+export function getBundle(url) {
     return urls[url];
 }
-exports.getBundle = getBundle;
 //# sourceMappingURL=systemjs.import.content.js.map

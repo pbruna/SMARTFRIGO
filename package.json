@@ -19,62 +19,34 @@
     "@angular/router": "^3.4.0",
     "@angular/upgrade": "^2.1.0",
     "angular-in-memory-web-api": "~0.1.5",
-    "archiver": "^1.0.0",
     "big-integer": "^1.6.15",
     "bootstrap": "^3.3.6",
-    "copy-dir": "^0.3.0",
-    "copy-files": "^0.1.0",
     "core-js": "^2.4.0",
-    "easy-zip": "0.0.4",
     "jquery": "2.2.4",
     "jquery-ui": "1.10.4",
     "js-zxing-pdf417": "git+https://github.com/PeculiarVentures/js-zxing-pdf417.git",
-    "jszip": "latest",
     "pdfjs-dist": "^1.5.434",
     "pdfjs-dist-for-node": "^1.0.892-rc.1",
     "reflect-metadata": "^0.1.3",
     "rxjs": "^5.0.1",
     "systemjs": "0.19.27",
-    "uglify-js2": "^2.1.11",
-    "zone.js": "^0.6.12",
-    "zxing": "^0.1.1"
+    "zone.js": "^0.6.12"
   },
   "devDependencies": {
-    "browserify": "latest",
-    "browserify-css": "^0.9.1",
-    "browserify-shim": "^3.8.12",
+    "archiver": "^1.0.0",
     "concurrently": "^2.0.0",
     "lite-server": "^2.2.0",
     "retyped-archiver-tsd-ambient": "^0.15.0-0",
     "rollup": "^0.41.6",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^2.0.0",
-    "systemjs-builder": "^0.16.4",
+    "rollup-plugin-uglify": "^1.0.1",
     "xmldom": "^0.1.27",
     "xmlserializer": "^0.6.0"
   },
   "browser": {
     "customPlugin": "path/to/custom/plugin",
     "jquery": "./node_modules/jquery/dist/jquery.js"
-  },
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
-  },
-  "browserify-shim": {
-    "angular2": "global:angular2",
-    "jquery": "jQuery",
-    "customPlugin": {
-      "depends": [
-        "jquery:jQuery"
-      ]
-    }
-  },
-  "browserify-css": {
-    "autoInject": true,
-    "minify": true,
-    "rootDir": "."
   },
   "jspm": {
     "registry": "npm",

@@ -1,5 +1,4 @@
-"use strict";
-var factura_electronica_1 = require("./factura-electronica");
+import { timbreElectronico } from './factura-electronica';
 var raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (tab.url.indexOf('https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?') == 0)
@@ -32,7 +31,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 });
 function SubirPDFaALMAFRIGO(message, func) {
     message.tabId = parseInt(message.tabId);
-    var te = new factura_electronica_1.timbreElectronico();
+    var te = new timbreElectronico();
     te.leerTimbre(message.timbreElec);
     var xhrp = new XMLHttpRequest();
     xhrp.open('post', raiz + 'OrdenesDeSalida_subirPDFconTimbre');

@@ -1,11 +1,8 @@
 import * as fs from 'fs'
 import * as archiver from 'archiver'
-import * as uglify from 'uglify-js2'
-import * as copyfiles from 'copy-files'
 import { Observable, Observer } from 'rxjs'
 import * as xmldom from 'xmldom'
 import * as XMLSerializer from 'xmlserializer'
-import * as browserify from 'browserify'
 
 
 import * as content from '../enter_scripts/systemjs.import.content'
