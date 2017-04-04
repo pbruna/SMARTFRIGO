@@ -4,7 +4,7 @@ import uglify      from 'rollup-plugin-uglify'
  
 export default {
   entry: 'app/main.js',
-  dest: 'bundle.js',
+  dest: 'publish/SMARTFRIGO/app/main.js',
   format: 'iife',
   plugins: [
     nodeResolve({

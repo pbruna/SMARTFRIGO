@@ -1,8 +1,10 @@
+"use strict";
 if (typeof SystemJS !== 'undefined')
     SystemJS.import('back/background');
 if (typeof module === 'undefined')
     var exports = {};
-export function getBundle() {
+function getBundle() {
     return 'back/background.js';
 }
+exports.getBundle = getBundle;
 //# sourceMappingURL=systemjs.import.background.js.map

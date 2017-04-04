@@ -3,6 +3,8 @@ import * as archiver from 'archiver'
 import { Observable, Observer } from 'rxjs'
 import * as xmldom from 'xmldom'
 import * as XMLSerializer from 'xmlserializer'
+import * as uglify from 'uglify-js'
+import * as browserify from 'browserify'
 
 
 import * as content from '../enter_scripts/systemjs.import.content'
