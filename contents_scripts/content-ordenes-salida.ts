@@ -47,9 +47,7 @@ function getDeFontanaSesion(): Observable<sesion> {
         xhr.onload = () => {
             try {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
-                    obs.complete();
-                    return
+                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
                 }
                 if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
                     cliente.Campos.defontana.sesion = {
@@ -151,9 +149,7 @@ function addArticuloADeFontana(item: ItemDespacho): Observable<articuloDF> {
             xhr.onload = () => {
                 try {
                     if (xhr.status !== 200) {
-                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
-                        obs.complete();
-                        return
+                        obs.error(xhr.responseXML.getElementsByTagName('Mensaje').item(0).textContent)
                     }
                     xhr.responseXML.getElementsByTagName('GrabaProductoResult').item(0);
                     obs.next(art);
@@ -212,7 +208,7 @@ function getArticuloDeFontana(codigo: string): Observable<articuloDF | string> {
             xhr.onload = () => {
                 try {
                     if (xhr.status !== 200) {
-                        obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                        obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
                         obs.complete();
                         return
                     }
@@ -265,7 +261,7 @@ function getClienteDeFontana(rut: string): Observable<clienteDF> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
                     obs.complete();
                     return
                 }
@@ -322,7 +318,7 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
                     obs.complete();
                     return
                 }
@@ -403,7 +399,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('MensajeError').item(0).textContent)
+                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
                     obs.complete();
                     return
                 }
