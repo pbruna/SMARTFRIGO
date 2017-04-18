@@ -1,6 +1,7 @@
 import { OrdenDeSalida, EstadosOrden, ItemDespacho, Bulto, MinDTE } from '../app/objetos';
 import { Observable } from 'rxjs/Observable'
 import { Observer } from 'rxjs/Observer'
+import { Scheduler } from 'rxjs/Scheduler'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/max'
@@ -93,6 +94,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
     let clienteDF: clienteDF
     let folioPedido: number
     let arts: { [cod: string]: articuloDF }
+    let itmsOfItes: [ItemDespacho[]]
     return Observable
         .of('Iniciando sesión en De Fontana')
         .do(x => sendMessageBackToPage(x))
@@ -126,7 +128,8 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                 : { '': os.Items.filter(it => it.Bultos.length > 0) })
             .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
             .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
-            .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF)))
+            .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF))
+            )
 
 
 
@@ -450,7 +453,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                                     <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
                                     <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
                                     <ws1:PrecioUnitario>${va.Precio}</ws1:PrecioUnitario>
-                                    <ws1:SubTotal>${Math.round(va.Precio * va['facturado'] * 100) / 100}</ws1:SubTotal>    
+                                    <ws1:SubTotal>${Math.round(va.Precio * va['facturado'])}</ws1:SubTotal>    
                                 </ws1:PedidoDetalle>`}, '')}
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
@@ -488,6 +491,13 @@ function sendMessageBackToPage(msg: string) {
     document.dispatchEvent(new CustomEvent('EnviarMensaje', { detail: msg }))
 }
 
+
+function secuencia<V, T>(itms: T[], fun: (itm: T) => Observable<V> ) {
+
+
+    return fun(itms[0])
+    .flatMap(x => fun(itms[1]))
+}
 
 
 document.addEventListener('EnviarOSaDeFontana', (e: any) => {

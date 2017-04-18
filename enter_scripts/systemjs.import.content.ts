@@ -4,6 +4,7 @@ declare var SystemJS: any
 let urls: { [key: string]: string } = {
     "https://www1.sii.cl/cgi-bin/Portal001/mipeSendXML.cgi*": "contents_scripts/content-dte-emitido.js",
     "https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi*": "contents_scripts/content-form-dte.js",
+    //"http://www.almafrigo.cl/mi_cuenta.aspx*": "contents_scripts/content-dte-emitido.js"
     "http://www.almafrigo.cl/mi_cuenta.aspx*": "contents_scripts/content-ordenes-salida.js"
 }
 

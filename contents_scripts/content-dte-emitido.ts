@@ -1,3 +1,31 @@
+import { ZXing } from 'zxing-pdf417-extension'
+
+import 'jquery-ui/themes/base/dialog.css'
+
+import 'jquery-ui/ui/widget'
+
+import 'jquery-ui/ui/widgets/mouse'
+import 'jquery-ui/ui/widgets/button'
+import 'jquery-ui/ui/widgets/checkboxradio'
+import 'jquery-ui/ui/widgets/controlgroup'
+import 'jquery-ui/ui/widgets/dialog'
+
+import 'jquery-ui/ui/position'
+import 'jquery-ui/ui/data'
+import 'jquery-ui/ui/disable-selection'
+import 'jquery-ui/ui/focusable'
+import 'jquery-ui/ui/form-reset-mixin'
+import 'jquery-ui/ui/keycode'
+import 'jquery-ui/ui/labels'
+import 'jquery-ui/ui/scroll-parent'
+import 'jquery-ui/ui/tabbable'
+import 'jquery-ui/ui/unique-id'
+import 'jquery-ui/ui/safe-active-element'
+import 'jquery-ui/ui/safe-blur'
+
+
+
+
 
 
 (function () {
@@ -33,9 +61,9 @@
 
 
     function BajarPDF() {
+        $(div).dialog('open');
         var a = <HTMLAnchorElement>document.querySelector('a[href^="/cgi-bin/Portal001/mipeDisplayPDF.cgi?DHDR_CODIGO="]')
         var xhr = new XMLHttpRequest()
-        $(div).dialog('open');
         msg.innerText = 'Estamos bajando la factura del SII.';
 
         xhr.open('get', a.href)
@@ -117,7 +145,8 @@
             autoOpen: false,
             closeOnEscape: false,
             title: decodeURI('ALMAFRIGO - Servicios Log%C3%ADsticos y Almacenamiento Frigor%C3%ADfico'),
-            width: 600
+            width: 600,
+            closeText: ''
         });
 
 
@@ -129,7 +158,6 @@
 })();
 
 declare var PDFJS: any;
-declare var ZXing: any
 
 
 class ScanPDF417 {
@@ -169,8 +197,10 @@ class ScanPDF417 {
 
                     page.render({ canvasContext: context, viewport: viewport }).promise.then(function () {
                         var img = document.createElement('img');
+                        img.onload = function () {
+                            if (callBack) callBack(sc.ScanPDF417FromImgHTMLElement(img));
+                        }
                         img.src = canvas.toDataURL('image/jpeg');
-                        if (callBack) callBack(sc.ScanPDF417FromImgHTMLElement(img));
                     }, function (err) {
                         console.log(err);
                     });

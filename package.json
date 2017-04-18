@@ -22,7 +22,7 @@
     "bootstrap": "^3.3.6",
     "core-js": "^2.4.1",
     "jquery": "2.2.4",
-    "jquery-ui": "1.10.4",
+    "jquery-ui": "^1.12.1",
     "pdfjs-dist": "^1.5.434",
     "pdfjs-dist-for-node": "^1.0.892-rc.1",
     "rxjs": "^5.0.1",
@@ -40,6 +40,7 @@
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-uglify": "^1.0.1",
+    "systemjs-plugin-css": "github:systemjs/plugin-css",
     "uglify-js": "^2.8.21",
     "xmldom": "^0.1.27",
     "xmlserializer": "^0.6.0"
@@ -60,11 +61,12 @@
       "@angular/platform-browser": "^4.0.1",
       "@angular/platform-browser-dynamic": "^4.0.1",
       "@angular/router": "~4.0.0",
+      "DiegoMajluf/zxing-pdf417-extension.git": "github:DiegoMajluf/zxing-pdf417-extension@master",
       "big-integer": "^1.6.15",
       "bootstrap": "^3.3.6",
       "core-js": "^2.4.1",
       "jquery": "2.2.4",
-      "jquery-ui": "1.10.4",
+      "jquery-ui": "^1.12.1",
       "pdfjs-dist": "^1.5.434",
       "pdfjs-dist-for-node": "^1.0.892-rc.1",
       "rxjs": "^5.0.1",
@@ -74,6 +76,7 @@
     "devDependencies": {
       "babel": "babel-core@^5.8.24",
       "babel-runtime": "^5.8.24",
+      "systemjs-plugin-css": "^0.1.33",
       "typescript": "^2.0.7"
     }
   }
