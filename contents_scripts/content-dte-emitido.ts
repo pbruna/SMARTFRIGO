@@ -1,7 +1,5 @@
 import { ZXing } from 'zxing-pdf417-extension'
 
-import 'jquery-ui/themes/base/dialog.css'
-
 import 'jquery-ui/ui/widget'
 
 import 'jquery-ui/ui/widgets/mouse'
@@ -22,10 +20,6 @@ import 'jquery-ui/ui/tabbable'
 import 'jquery-ui/ui/unique-id'
 import 'jquery-ui/ui/safe-active-element'
 import 'jquery-ui/ui/safe-blur'
-
-
-
-
 
 
 (function () {

@@ -195,7 +195,7 @@ function zipAndGetScripts(scs: string[], url): Observable<string[]> {
         .do(x => { // lo ingresamos si no está repetido
             if (ingresados[x.filename]) return
             if (x.path)
-                if (x.text.indexOf('.min.') === -1)
+                if (x.text.indexOf('.min.') === -1 && !/\.css$/.test(x.filename))
                     zip.append(uglify.minify(x.text).code, { name: x.filename })
                 else
                     zip.append(fs.createReadStream(x.text), { name: x.filename })

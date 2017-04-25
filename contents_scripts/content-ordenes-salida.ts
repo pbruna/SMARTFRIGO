@@ -48,7 +48,10 @@ function getDeFontanaSesion(): Observable<sesion> {
         xhr.onload = () => {
             try {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
+                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                        obs.error(el.textContent)
+                        return
                 }
                 if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
                     cliente.Campos.defontana.sesion = {
@@ -129,7 +132,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
             .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
             .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
             .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF))
-            )
+        )
 
 
 
@@ -152,7 +155,10 @@ function addArticuloADeFontana(item: ItemDespacho): Observable<articuloDF> {
             xhr.onload = () => {
                 try {
                     if (xhr.status !== 200) {
-                        obs.error(xhr.responseXML.getElementsByTagName('Mensaje').item(0).textContent)
+                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                        obs.error(el.textContent)
+                        return
                     }
                     xhr.responseXML.getElementsByTagName('GrabaProductoResult').item(0);
                     obs.next(art);
@@ -211,8 +217,9 @@ function getArticuloDeFontana(codigo: string): Observable<articuloDF | string> {
             xhr.onload = () => {
                 try {
                     if (xhr.status !== 200) {
-                        obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
-                        obs.complete();
+                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                        obs.error(el.textContent)
                         return
                     }
                     let artRep = xhr.responseXML.getElementsByTagName('ConsultaArticulosResult').item(0);
@@ -264,8 +271,9 @@ function getClienteDeFontana(rut: string): Observable<clienteDF> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
-                    obs.complete();
+                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                    obs.error(el.textContent)
                     return
                 }
                 try {
@@ -321,8 +329,9 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
-                    obs.complete();
+                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                    obs.error(el.textContent)
                     return
                 }
                 try {
@@ -402,8 +411,9 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
             xhr.responseType = 'document'
             xhr.onload = () => {
                 if (xhr.status !== 200) {
-                    obs.error(xhr.responseXML.getElementsByTagName('Message').item(0).textContent)
-                    obs.complete();
+                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                    obs.error(el.textContent)
                     return
                 }
                 let art: { Rut: string, Razon: string }
@@ -452,7 +462,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                                     <ws1:FechaEntrega>${os.FechaDespacho.toISOString().substr(0, 10)}</ws1:FechaEntrega>
                                     <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
                                     <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
-                                    <ws1:PrecioUnitario>${va.Precio}</ws1:PrecioUnitario>
+                                    <ws1:PrecioUnitario>${va.Precio || 0}</ws1:PrecioUnitario>
                                     <ws1:SubTotal>${Math.round(va.Precio * va['facturado'])}</ws1:SubTotal>    
                                 </ws1:PedidoDetalle>`}, '')}
                             </ws1:Detalles>
@@ -492,11 +502,11 @@ function sendMessageBackToPage(msg: string) {
 }
 
 
-function secuencia<V, T>(itms: T[], fun: (itm: T) => Observable<V> ) {
+function secuencia<V, T>(itms: T[], fun: (itm: T) => Observable<V>) {
 
 
     return fun(itms[0])
-    .flatMap(x => fun(itms[1]))
+        .flatMap(x => fun(itms[1]))
 }
 
 

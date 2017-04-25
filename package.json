@@ -5,7 +5,7 @@
     "start": "npm run copyscripts tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
     "lite": "lite-server",
     "postinstall": "typings install",
-    "build": "tsc && node packages_scripts/zipscript.js"
+    "build": "tsc && node packages_scripts/zipscript.js && tsc -m es2015 && rollup -c && tsc"
   },
   "license": "ISC",
   "dependencies": {
