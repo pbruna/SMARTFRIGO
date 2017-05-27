@@ -3,6 +3,7 @@
 
     var TabId: string
     var NumOrden: string
+    var listItms: number
 
     function getTabInfo() {
         chrome.runtime.sendMessage({ op: 'QuienSoy' }, null, function (response) {
@@ -13,12 +14,15 @@
                         if (item[TabId]) RellenarFormularioSIIPostBack(item[TabId]);
                     });
                     break;
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=33':
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=34':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=33&esCRED_EC=FALSE':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=34&esCRED_EC=FALSE':
+                    listItms = 1
                 case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?TIPO_PLANTILLA=NC_BLANCO&PTDC_CODIGO=61':
                 case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?TIPO_PLANTILLA=NC_BLANCO&PTDC_CODIGO=56':
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=52':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=52&esCRED_EC=FALSE':
+                    if (listItms === undefined) listItms = 3
                     chrome.storage.local.remove(TabId);
+                    console.log('removed')
                     break;
 
             }
@@ -52,7 +56,7 @@
             if (dte.retenedorIVACarne) return item.impuesto != '18'
             return true;
         })) //Verifica si algun item de la factura tiene impuesto
-            $("[name='OTRO_IMP_SI_NO']")[0].click();
+            if ($("[name='OTRO_IMP_SI_NO']")[0]) $("[name='OTRO_IMP_SI_NO']")[0].click();
 
         for (var i = 0; i < dte.items.length; ++i) {
 
@@ -60,7 +64,7 @@
                 alert('No se pudieron agregar todos los items a la factura, el SII no permiten mas de 10');
                 break;
             }
-            if (i > 2) $("[name='AGREGA_DETALLE']").click();
+            if (i >= listItms) $("[name='AGREGA_DETALLE']").click();
 
 
             var id = ('0' + (i + 1)).slice(-2);
@@ -114,7 +118,8 @@
             document.querySelector("[name='EFXP_PCT_DESC']").dispatchEvent(blur);
         }
 
-        if (dte.vencimiento && $("[name='PAGO_SI_NO']").length > 0 && $("[name='PAGO_SI_NO']").val() == 'SiChecked') {
+        if (dte.vencimiento && $("[name='PAGO_SI_NO']").length > 0 && $("[name='PAGO_SI_NO']").val() == 'SiChecked'
+            && (<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).style.visibility !== 'hidden') {
             $("[name='PAGO_SI_NO']")[0].click();
 
             $("[name='cbo_anio_boleta_pago_01']").val(dte.vencimiento.getFullYear());
@@ -145,16 +150,10 @@
 
 
         if (minidte.emision) {
-            minidte.emision = new Date(minidte.emision);
 
-            $("[name='cbo_anio_boleta']").val(minidte.emision.getFullYear());
-            document.querySelector("[name='cbo_anio_boleta']").dispatchEvent(event);
+            $("[name='EFXP_FCH_EMIS']").val(minidte.emision.substr(0, 10));
+            document.querySelector("[name='EFXP_FCH_EMIS']").dispatchEvent(event);
 
-            $("[name='cbo_mes_boleta']").val((minidte.emision.getMonth() < 9 ? '0' : '') + (minidte.emision.getMonth() + 1));
-            document.querySelector("[name='cbo_mes_boleta']").dispatchEvent(event);
-
-            $("[name='cbo_dia_boleta']").val((minidte.emision.getDate() < 10 ? '0' : '') + minidte.emision.getDate());
-            document.querySelector("[name='cbo_dia_boleta']").dispatchEvent(event);
         }
     }
 
@@ -176,12 +175,14 @@
             $("[name='QUITA_DETALLE']").click();
         }
 
-        if ((<HTMLInputElement>$("[name='OTRO_IMP_SI_NO']")[0]).checked) (<HTMLInputElement>$("[name='OTRO_IMP_SI_NO']")[0]).checked;
+        if ($("[name='OTRO_IMP_SI_NO']")[0])
+            if ((<HTMLInputElement>$("[name='OTRO_IMP_SI_NO']")[0]).checked)
+                (<HTMLInputElement>$("[name='OTRO_IMP_SI_NO']")[0]).checked;
 
-        for (let i = 0; i < 3; ++i) {
+        for (let i = 0; i < listItms; ++i) {
 
 
-            var id = (i < 11 ? '0' : '') + (i + 1);
+            var id = ('0' + (i + 1)).slice(-2);
 
             if ((<HTMLInputElement>$("[name='COD_SI_NO']")[0]).checked) {
                 $("[name='EFXP_TPO_COD_" + id + "']").val('');
@@ -216,17 +217,12 @@
         if ((<HTMLInputElement>$("[name='COD_SI_NO']")[0]).checked) $("[name='COD_SI_NO']")[0].click();
 
 
-        if ($("[name='PAGO_SI_NO']")[0] && (<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).checked) {
+        if ($("[name='PAGO_SI_NO']")[0] && (<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).checked
+            && (<HTMLInputElement>$("[name='PAGO_SI_NO']")[0]).style.visibility !== 'hidden') {
 
-            $("[name='cbo_anio_boleta_pago_01']").val('');
-            document.querySelector("[name='cbo_anio_boleta_pago_01']").dispatchEvent(event);
+            $("[name='EFXP_FCH_EMIS']").val(new Date().toJSON().substr(0, 10));
+            document.querySelector("[name='EFXP_FCH_EMIS']").dispatchEvent(event);
 
-
-            (<HTMLSelectElement>$("[name='cbo_mes_boleta_pago_01']").get(0)).selectedIndex = d.getMonth();
-            document.querySelector("[name='cbo_mes_boleta_pago_01']").dispatchEvent(event);
-
-            $("[name='cbo_dia_boleta_pago_01']").val((d.getDate() < 10 ? '0' : '') + d.getDate());
-            document.querySelector("[name='cbo_dia_boleta_pago_01']").dispatchEvent(event);
 
             $("[name='EFXP_MNT_PAGO_001']").val('');
             document.querySelector("[name='EFXP_MNT_PAGO_001']").dispatchEvent(event);

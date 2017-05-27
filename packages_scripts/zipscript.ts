@@ -200,6 +200,7 @@ function zipAndGetScripts(scs: string[], url): Observable<string[]> {
                 else
                     zip.append(fs.createReadStream(x.text), { name: x.filename })
             else
+                //zip.append(x.text, { name: x.filename })
                 zip.append(uglify.minify(x.text, { fromString: true }).code, { name: x.filename })
             ingresados[x.filename] = true
         })
