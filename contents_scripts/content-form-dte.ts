@@ -113,9 +113,8 @@
         }
 
         if (dte.descuento && $("[name='EFXP_PCT_DESC']").length > 0) {
-            var blur = new KeyboardEvent('blur')
             $("[name='EFXP_PCT_DESC']").val(dte.descuento);
-            document.querySelector("[name='EFXP_PCT_DESC']").dispatchEvent(blur);
+            document.querySelector("[name='EFXP_PCT_DESC']").dispatchEvent(event);
         }
 
         if (dte.vencimiento && $("[name='PAGO_SI_NO']").length > 0 && $("[name='PAGO_SI_NO']").val() == 'SiChecked'
@@ -235,7 +234,7 @@
 
         if ($("[name='EFXP_MNT_DESC']").length > 0) {
             $("[name='EFXP_MNT_DESC']").val('');
-            $("[name='EFXP_MNT_DESC']").blur();
+            $("[name='EFXP_MNT_DESC']").change();
         }
 
     }
