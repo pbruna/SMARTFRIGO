@@ -24,6 +24,13 @@ let cliente: {
             separarXImpuesto: boolean,
             sesion: sesion,
             url: string,
+            impuestos: {
+                [codImp: string]: {
+                    tasa: number,
+                    codigo: string,
+                    tipoDocumento: string,
+                }
+            }
             tipoDocumento: string,
             agregaIdPedido: boolean
         },
@@ -48,10 +55,10 @@ function getDeFontanaSesion(): Observable<sesion> {
         xhr.onload = () => {
             try {
                 if (xhr.status !== 200) {
-                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                        obs.error(el.textContent)
-                        return
+                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
+                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
+                    obs.error(el.textContent)
+                    return
                 }
                 if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
                     cliente.Campos.defontana.sesion = {
@@ -98,6 +105,14 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
     let folioPedido: number
     let arts: { [cod: string]: articuloDF }
     let itmsOfItes: [ItemDespacho[]]
+
+    function secuencia(itms: { impuesto: string, items: ItemDespacho[] }[], os: OrdenDeSalida, cliDF: clienteDF): Observable<boolean> {
+
+        if (itms.length === 1) return savePedidoEnDeFontana(os, itms[0].items, cliDF, itms[0].impuesto)
+        return savePedidoEnDeFontana(os, itms[0].items, cliDF, itms[0].impuesto)
+            .flatMap(x => secuencia(itms.slice(1), os, cliDF))
+
+    }
     return Observable
         .of('Iniciando sesión en De Fontana')
         .do(x => sendMessageBackToPage(x))
@@ -122,17 +137,25 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                 .flatMap(x => getContactoClienteDeFontana(x))
                 .do(x => sendMessageBackToPage('Cliente Obtenido correctamente')))
             .do(x => clienteDF = x[1])
-            .map(x => cliente.Campos.defontana.separarXImpuesto && !os.Cliente.EsRet5PorCarne
-                ? os.Items.reduce((acc, it) => {
-                    if (it.Bultos.length > 0)
-                        acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
-                    return acc
-                }, {})
-                : { '': os.Items.filter(it => it.Bultos.length > 0) })
+            .map(x => <{ [codImp: string]: ItemDespacho[] }>
+                (cliente.Campos.defontana.separarXImpuesto && !os.Cliente.EsRet5PorCarne
+                    ? os.Items.reduce((acc, it) => {
+                        if (it.Bultos.length > 0)
+                            acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
+                        return acc
+                    }, {})
+                    : { '': os.Items.filter(it => it.Bultos.length > 0) }))
             .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
-            .flatMap(x => Object.keys(x).reduce((arr, key) => { arr.push(x[key]); return arr }, <[ItemDespacho[]]>[]))
-            .flatMap(itm => savePedidoEnDeFontana(os, itm, clienteDF))
-        )
+            .map(x => Object.keys(x).reduce((arr, key) => {
+                arr.push({ impuesto: key, items: x[key] })
+                return arr
+            }, <{ impuesto: string, items: ItemDespacho[] }[]>[]))
+            .do(x => x.forEach(itm => {
+                if (itm.impuesto in cliente.Campos.defontana.impuestos) return
+                throw `El impuesto definido en ${itm.items[0].UnidadLog.Nombre} no tiene documento en DF asociado`
+            }))
+            .flatMap(x => secuencia(x, os, clienteDF))
+            .do(suc => sendMessageBackToPage('Pedidos creados correctamente')))
 
 
 
@@ -397,7 +420,7 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
         }))
 }
 
-function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF): Observable<boolean> {
+function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF, impuesto: string): Observable<boolean> {
     os.FechaIngreso = new Date(os.FechaIngreso)
     os.FechaDespacho = new Date(os.FechaDespacho)
     items.forEach(it => it['facturado'] = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
@@ -432,6 +455,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
             let afecto = items.reduce((acc, it) => acc + Math.round(it['facturado'] * it.Precio), 0)
             xhr.send(`<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/"
+                xmlns:dom="http://schemas.datacontract.org/2004/07/Dominio.General.Entidades"
                 xmlns:ws="http://schemas.datacontract.org/2004/07/WS.Core"
                 xmlns:ws1="http://schemas.datacontract.org/2004/07/WS.Ventas">
                 <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
@@ -447,7 +471,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws:IDUsuario>${sesion.IDUsuario}</ws:IDUsuario>
                         </tem:sesion>
                         <tem:pedido>
-                            <ws1:Afecto>0</ws1:Afecto>${cliente.Campos.defontana.agregaIdPedido ? `
+                            <ws1:Afecto>${afecto}</ws1:Afecto>${cliente.Campos.defontana.agregaIdPedido ? `
                             <ws1:Campos>
                                 <ws1:PedidoCampo>    
                                     <ws1:IDCampo>1</ws1:IDCampo>    
@@ -468,7 +492,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
                             <ws1:Estado>PENDIENTE</ws1:Estado>
-                            <ws1:Exento>${afecto}</ws1:Exento>                           
+                            <ws1:Exento>0</ws1:Exento>                           
                             <ws1:Fecha>${os.FechaIngreso.toISOString().substr(0, 10)}</ws1:Fecha>
                             <ws1:FechaExpiracion>${new Date(os.FechaIngreso.getTime() + 1000 * 60 * 60 * 24 * 365).toISOString().substr(0, 10)}</ws1:FechaExpiracion>
                             <ws1:IDCondicionPago>${cliDF.IDCondicionPago}</ws1:IDCondicionPago>
@@ -478,8 +502,20 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:IDListaPrecio>1</ws1:IDListaPrecio>
                             <ws1:IDLocal>Local</ws1:IDLocal>
                             <ws1:IDMonedaIngreso>PESO</ws1:IDMonedaIngreso>
-                            <ws1:IDTipoDocumento>${cliente.Campos.defontana.tipoDocumento}</ws1:IDTipoDocumento>
+                            <ws1:IDTipoDocumento>${cliente.Campos.defontana.impuestos[impuesto].tipoDocumento}</ws1:IDTipoDocumento>
                             <ws1:IDVendedor>${cliDF.IDVendedor}</ws1:IDVendedor>
+                            <ws1:Impuestos>
+                            <dom:DetalleImpuesto>
+                                <dom:IDImpuesto>IVA</dom:IDImpuesto>
+                                <dom:MontoImpuesto>${Math.round(afecto * 0.19)}</dom:MontoImpuesto>
+                                <dom:PorcentajeImpuesto>19</dom:PorcentajeImpuesto>
+                            </dom:DetalleImpuesto>${impuesto === '' ? '' : `
+                            <dom:DetalleImpuesto>
+                                <dom:IDImpuesto>${cliente.Campos.defontana.impuestos[impuesto].codigo}</dom:IDImpuesto>
+                                <dom:MontoImpuesto>${Math.round(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa)}</dom:MontoImpuesto>
+                                <dom:PorcentajeImpuesto>${cliente.Campos.defontana.impuestos[impuesto].tasa * 100}</dom:PorcentajeImpuesto>
+                            </dom:DetalleImpuesto>`}
+                            </ws1:Impuestos>                            
                             <ws1:Numero>0</ws1:Numero>
                             <ws1:ObservacionDespacho>${os.Direccion}</ws1:ObservacionDespacho>
                             <ws1:ObservacionFacturacion>Total Bultos ${items.reduce((acc, it) => acc + (it.Bultos ? it.Bultos.length : 0), 0).toLocaleString()}
@@ -489,7 +525,7 @@ Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleStr
                             <ws1:ObservacionPrestacion></ws1:ObservacionPrestacion>
                             <ws1:RecargoDescuento>0</ws1:RecargoDescuento>
                             <ws1:Subtotal>${afecto}</ws1:Subtotal>
-                            <ws1:Total>${afecto}</ws1:Total>
+                            <ws1:Total>${afecto + Math.round(afecto * 0.19) + Math.round(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa || 0)}</ws1:Total>
                         </tem:pedido>
                     </tem:GrabaPedidoRetorno>
                 </soap:Body>
@@ -502,12 +538,7 @@ function sendMessageBackToPage(msg: string) {
 }
 
 
-function secuencia<V, T>(itms: T[], fun: (itm: T) => Observable<V>) {
 
-
-    return fun(itms[0])
-        .flatMap(x => fun(itms[1]))
-}
 
 
 document.addEventListener('EnviarOSaDeFontana', (e: any) => {

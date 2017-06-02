@@ -1,5 +1,5 @@
 System.config({
-  baseUrl: chrome.extension.getURL('/'),
+  baseURL: chrome.extension.getURL('/'),
   defaultJSExtensions: true,
   transpiler: "typescript",
   paths: {
