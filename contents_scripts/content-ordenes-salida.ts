@@ -424,8 +424,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
     os.FechaIngreso = new Date(os.FechaIngreso)
     os.FechaDespacho = new Date(os.FechaDespacho)
     items.forEach(it => it['facturado'] = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
-        (b.UnidadLogistica.TipoUnidad === 1 ? b.PesoNeto ? b.PesoNeto - (b.Tara || 0) : b.PesoInformado || 0
-            : b.UnidadLogistica.Unidades || 1), 0)) / 100)
+        (b.UnidadLogistica.TipoUnidad === 1 ? b.PesoInformado || (b.PesoNeto - (b.Tara || 0)) : b.UnidadLogistica.Unidades || 1), 0)) / 100)
     return getDeFontanaSesion()
         .flatMap(sesion => Observable.create((obs: Observer<boolean>) => {
             let xhr = new XMLHttpRequest()
@@ -436,23 +435,19 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                 if (xhr.status !== 200) {
                     let el = xhr.responseXML.getElementsByTagName('Message').item(0)
                     if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                    obs.error(el.textContent)
-                    return
+                    return obs.error(el.textContent)
                 }
                 let art: { Rut: string, Razon: string }
                 try {
                     xhr.responseXML.getElementsByTagName('GrabaPedidoResultRetorno').item(0);
                     obs.next(true);
                 } catch (e) {
-                    obs.error(e)
+                    return obs.error(e)
                 }
                 obs.complete();
             }
-            xhr.onerror = e => {
-                obs.error(e)
-                obs.complete();
-            }
-            let afecto = items.reduce((acc, it) => acc + Math.round(it['facturado'] * it.Precio), 0)
+            xhr.onerror = e =>  obs.error(e) 
+            let afecto = items.reduce((acc, it) => acc + Math.round(+(it['facturado'] * it.Precio).toFixed(2)), 0)
             xhr.send(`<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/"
                 xmlns:dom="http://schemas.datacontract.org/2004/07/Dominio.General.Entidades"
@@ -487,7 +482,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                                     <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
                                     <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
                                     <ws1:PrecioUnitario>${va.Precio || 0}</ws1:PrecioUnitario>
-                                    <ws1:SubTotal>${Math.round(va.Precio * va['facturado'])}</ws1:SubTotal>    
+                                    <ws1:SubTotal>${Math.round(+(va.Precio * va['facturado']).toFixed(2))}</ws1:SubTotal>    
                                 </ws1:PedidoDetalle>`}, '')}
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
@@ -507,12 +502,12 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:Impuestos>
                             <dom:DetalleImpuesto>
                                 <dom:IDImpuesto>IVA</dom:IDImpuesto>
-                                <dom:MontoImpuesto>${Math.round(afecto * 0.19)}</dom:MontoImpuesto>
+                                <dom:MontoImpuesto>${Math.round(+(afecto * 0.19).toFixed(2))}</dom:MontoImpuesto>
                                 <dom:PorcentajeImpuesto>19</dom:PorcentajeImpuesto>
                             </dom:DetalleImpuesto>${impuesto === '' ? '' : `
                             <dom:DetalleImpuesto>
                                 <dom:IDImpuesto>${cliente.Campos.defontana.impuestos[impuesto].codigo}</dom:IDImpuesto>
-                                <dom:MontoImpuesto>${Math.round(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa)}</dom:MontoImpuesto>
+                                <dom:MontoImpuesto>${Math.round(+(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa).toFixed(2))}</dom:MontoImpuesto>
                                 <dom:PorcentajeImpuesto>${cliente.Campos.defontana.impuestos[impuesto].tasa * 100}</dom:PorcentajeImpuesto>
                             </dom:DetalleImpuesto>`}
                             </ws1:Impuestos>                            
@@ -525,7 +520,7 @@ Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleStr
                             <ws1:ObservacionPrestacion></ws1:ObservacionPrestacion>
                             <ws1:RecargoDescuento>0</ws1:RecargoDescuento>
                             <ws1:Subtotal>${afecto}</ws1:Subtotal>
-                            <ws1:Total>${afecto + Math.round(afecto * 0.19) + Math.round(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa || 0)}</ws1:Total>
+                            <ws1:Total>${afecto + Math.round(+(afecto * 0.19).toFixed(2)) + Math.round(+(afecto * cliente.Campos.defontana.impuestos[impuesto].tasa || 0).toFixed(2))}</ws1:Total>
                         </tem:pedido>
                     </tem:GrabaPedidoRetorno>
                 </soap:Body>
