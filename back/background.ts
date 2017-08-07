@@ -35,7 +35,7 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     }
     });
 
-function SubirPDFaALMAFRIGO(message, func: Function) {
+function SubirPDFaALMAFRIGO(message: any, func: Function) {
     message.tabId = parseInt(message.tabId);
     let te = new timbreElectronico();
     te.leerTimbre(message.timbreElec)

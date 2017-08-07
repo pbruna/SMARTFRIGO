@@ -10,14 +10,15 @@
     <script src="node_modules/core-js/client/shim.min.js"></script>
     <script src="node_modules/zone.js/dist/zone.min.js?main=browser"></script>
     <!-- 2. Configure SystemJS -->
-    <script src="node_modules/systemjs/dist/system.src.js" keep="false"></script>
-    <script src="config.js" keep="false"></script>
-    <script src="enter_scripts/systemjs.import.popup.js" bundle="app/main.js" ></script>
+    <script src="node_modules/systemjs/dist/system.src.js" no-keep></script>
+    <script src="config.js" no-keep></script>
+    <script src="enter_scripts/systemjs.import.popup.js" no-keep></script>
 
     <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
   </head>
   <!-- 3. Display the application -->
   <body style="width: 800px; height: 600px"> 
     <smart-frigo>Cargando...</smart-frigo>
+    <script data-src="build.js" no-copy-file></script>
   </body>
 </html>

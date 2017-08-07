@@ -1,11 +1,11 @@
 import * as Globals from './objetos';
 export const webServiceURL = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx';
 
-export function createAFObject(Obj) {
+export function createAFObject(Obj: any) {
 
     if (Obj == null) return null;
     if (Array.isArray(Obj)) {
-        var r = [];
+        var r: any[] = [];
         Obj.forEach(function (it) { r.push(createAFObject(it)); });
         return r;
     }

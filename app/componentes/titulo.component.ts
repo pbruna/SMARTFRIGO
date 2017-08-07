@@ -1,9 +1,9 @@
-import { Component, Input, Output, EventEmitter} from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 
 @Component({
     selector: 'titulo',
-    templateUrl: './app/componentes/titulo.component.html'
+    templateUrl: 'titulo.component.html'
 })
 export class TituloComponent {
     @Input() titulo: string;

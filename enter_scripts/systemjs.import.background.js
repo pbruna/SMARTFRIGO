@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 if (typeof SystemJS !== 'undefined')
     SystemJS.import('back/background');
 if (typeof module === 'undefined')

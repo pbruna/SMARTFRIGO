@@ -5,17 +5,16 @@ import { OrdenService } from '../servicios/orden.service';
 
 @Component({
   selector: 'buscar-ordenes',
-  templateUrl: './app/componentes/buscar-ordenes.component.html',
+  templateUrl: 'buscar-ordenes.component.html',
 })
 export class BuscarOrdenesComponent implements OnInit {
   Ordenes: OrdenDeSalida[];
-  Estado: EstadosOrden;
+  Estado: any
   ShowPrgFolio = false;
+  Folio: number
   @Output("onSelectOrden") onSelectOrden: EventEmitter<OrdenDeSalida> = new EventEmitter<OrdenDeSalida>()
 
-  constructor(
-    private ordenService: OrdenService
-  ) { }
+  constructor(private ordenService: OrdenService) { }
 
   goToEstado(estado: EstadosOrden) {
     if (estado == -1) return;

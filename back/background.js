@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var factura_electronica_1 = require("./factura-electronica");
 var raiz = 'http://www.almafrigo.cl/webservices/webserviceoperaciones.asmx/';
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
@@ -7,7 +8,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 });
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     switch (message.op) {
-        case 'RellenarSIIForm':
+        case 'RellenarSIIForm'://Enviado desde el popup
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 if (tabs.length == 0)
                     return;
@@ -15,7 +16,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 chrome.tabs.sendMessage(message.tabId, message);
             });
             break;
-        case 'QuienSoy':
+        case 'QuienSoy'://Enviado desde contentscript
             sendResponse({ tabId: sender.tab.id });
             break;
         case 'SubirPDF':
@@ -25,7 +26,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 });
 chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
     switch (message.op) {
-        case 'version':
+        case 'version'://Enviado desde contentscript
             sendResponse(chrome.runtime.getManifest().version);
             break;
     }

@@ -2,15 +2,15 @@
 	"manifest_version": 2,
 	"name": "SMARTFRIGO",
 	"description": "Aplicacion de soporte para ALMAFRIGO",
-	"version": "2.1.5",
+	"version": "2.2.0",
 	"icons": {
-		"128": "app/images/IconoAlmafrigo128.png",
-		"48": "app/images/IconoAlmafrigo48.png",
-		"16": "app/images/IconoAlmafrigo16.png"
+		"128": "images/IconoAlmafrigo128.png",
+		"48": "images/IconoAlmafrigo48.png",
+		"16": "images/IconoAlmafrigo16.png"
 	},
 	"page_action": {
 		"default_icon": {
-			"38": "app/images/IconoAlmafrigo38.png"
+			"38": "images/IconoAlmafrigo38.png"
 		},
 		"default_popup": "index.html"
 	},

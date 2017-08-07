@@ -61,11 +61,12 @@ function getDeFontanaSesion(): Observable<sesion> {
                     return
                 }
                 if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
+                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Core'
                     cliente.Campos.defontana.sesion = {
-                        IDCliente: xhr.responseXML.getElementsByTagName('IDCliente').item(0).textContent,
-                        IDEmpresa: xhr.responseXML.getElementsByTagName('IDEmpresa').item(0).textContent,
-                        IDSesion: xhr.responseXML.getElementsByTagName('IDSesion').item(0).textContent,
-                        IDUsuario: xhr.responseXML.getElementsByTagName('IDUsuario').item(0).textContent,
+                        IDCliente: xhr.responseXML.getElementsByTagNameNS(ns, 'IDCliente').item(0).textContent,
+                        IDEmpresa: xhr.responseXML.getElementsByTagNameNS(ns, 'IDEmpresa').item(0).textContent,
+                        IDSesion: xhr.responseXML.getElementsByTagNameNS(ns, 'IDSesion').item(0).textContent,
+                        IDUsuario: xhr.responseXML.getElementsByTagNameNS(ns, 'IDUsuario').item(0).textContent,
                     }
                     obs.next(cliente.Campos.defontana.sesion);
                 } else obs.error('No se pudo iniciar sesión')
@@ -99,7 +100,7 @@ function getDeFontanaSesion(): Observable<sesion> {
 }
 
 function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
-    let itms = {};
+    let itms: { [cod: string]: ItemDespacho } = {};
     os.Items.forEach(it => itms[it.UnidadLog.Codigo] = it)
     let clienteDF: clienteDF
     let folioPedido: number
@@ -128,7 +129,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                         .do(art => sendMessageBackToPage(`OBSERVACIÓN:Se ha creado el artículo ${art.Codigo} ${itms[art.Codigo].UnidadLog.Nombre}`))
                     : Observable.of(art))
                 .do(art => sendMessageBackToPage(`Artículo ${art.Codigo} ${itms[art.Codigo].UnidadLog.Nombre} confirmado`))
-                .do(art => itms[art.Codigo].UnidadLog['unidaddf'] = art.Unidad)
+                .do(art => itms[art.Codigo].UnidadLog.unidaddf = art.Unidad)
                 .toArray(),
             Observable.of(os.Cliente.RUT)
                 .do(x => sendMessageBackToPage('Obteniendo datos de cliente'))
@@ -143,7 +144,7 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
                         if (it.Bultos.length > 0)
                             acc[it.UnidadLog.Impuesto] = (acc[it.UnidadLog.Impuesto] || []).concat([it])
                         return acc
-                    }, {})
+                    }, <{ [imp: string]: ItemDespacho[] }>{})
                     : { '': os.Items.filter(it => it.Bultos.length > 0) }))
             .do(x => sendMessageBackToPage(`Creando ${Object.keys(x).length} pedido${Object.keys(x).length === 1 ? '' : 's'}`))
             .map(x => Object.keys(x).reduce((arr, key) => {
@@ -245,12 +246,13 @@ function getArticuloDeFontana(codigo: string): Observable<articuloDF | string> {
                         obs.error(el.textContent)
                         return
                     }
-                    let artRep = xhr.responseXML.getElementsByTagName('ConsultaArticulosResult').item(0);
+                    let artRep = xhr.responseXML.getElementsByTagName('ConsultaArticulosResult').item(0)
+                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Inventario'
                     if (artRep.childNodes.length > 0) obs.next({
                         Codigo: codigo,
-                        Descripcion: artRep.getElementsByTagName('Descripcion').item(0).textContent,
-                        DescripcionDetallada: artRep.getElementsByTagName('DescripcionDetallada').item(0).textContent,
-                        Unidad: artRep.getElementsByTagName('IDUnidadMedida').item(0).textContent
+                        Descripcion: artRep.getElementsByTagNameNS(ns, 'Descripcion').item(0).textContent,
+                        DescripcionDetallada: artRep.getElementsByTagNameNS(ns, 'DescripcionDetallada').item(0).textContent,
+                        Unidad: artRep.getElementsByTagNameNS(ns, 'IDUnidadMedida').item(0).textContent
                     })
                     else obs.next(codigo)
                 } catch (e) {
@@ -300,14 +302,15 @@ function getClienteDeFontana(rut: string): Observable<clienteDF> {
                     return
                 }
                 try {
-                    let elem = xhr.responseXML.getElementsByTagName('ConsultaClientesPorCodLegalResult').item(0);
+                    let elem = xhr.responseXML.getElementsByTagName('ConsultaClientesPorCodLegalResult').item(0)
+                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Ventas'
                     if (elem.childNodes.length > 0) obs.next({
                         Rut: rut,
-                        Razon: elem.getElementsByTagName('Nombre').item(0).textContent,
-                        IDCondicionPago: elem.getElementsByTagName('IDCondicionPago').item(0).textContent,
-                        IDRubro: elem.getElementsByTagName('IDRubro').item(0).textContent,
-                        IDVendedor: elem.getElementsByTagName('IDVendedor').item(0).textContent,
-                        IDFicha: elem.getElementsByTagName('IDFichaCliente').item(0).textContent
+                        Razon: elem.getElementsByTagNameNS(ns, 'Nombre').item(0).textContent,
+                        IDCondicionPago: elem.getElementsByTagNameNS(ns, 'IDCondicionPago').item(0).textContent,
+                        IDRubro: elem.getElementsByTagNameNS(ns, 'IDRubro').item(0).textContent,
+                        IDVendedor: elem.getElementsByTagNameNS(ns, 'IDVendedor').item(0).textContent,
+                        IDFicha: elem.getElementsByTagNameNS(ns, 'IDFichaCliente').item(0).textContent
                     });
                     else obs.error('Cliente no existe en De Fontana')
                 } catch (e) {
@@ -359,9 +362,10 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
                 }
                 try {
                     let elem = xhr.responseXML.getElementsByTagName('GetContactosFichaClienteResult').item(0);
+                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Ventas'
                     if (elem.childNodes.length > 0) {
-                        cliDF.Rut = elem.getElementsByTagName('IDFichaCliente').item(0).textContent
-                        cliDF.IDContactoFicha = elem.getElementsByTagName('IDContacto').item(0).textContent
+                        cliDF.Rut = elem.getElementsByTagNameNS(ns, 'IDFichaCliente').item(0).textContent
+                        cliDF.IDContactoFicha = elem.getElementsByTagNameNS(ns, 'IDContacto').item(0).textContent
                         obs.next(cliDF)
                     } else obs.error('No se ha encontrado ningún contacto para el cliente')
                 } catch (e) {
@@ -423,7 +427,7 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
 function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: clienteDF, impuesto: string): Observable<boolean> {
     os.FechaIngreso = new Date(os.FechaIngreso)
     os.FechaDespacho = new Date(os.FechaDespacho)
-    items.forEach(it => it['facturado'] = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
+    items.forEach(it => it.facturado = Math.round(100 * it.Bultos.reduce((ac, b) => ac +
         (b.UnidadLogistica.TipoUnidad === 1 ? b.PesoInformado || (b.PesoNeto - (b.Tara || 0)) : b.UnidadLogistica.Unidades || 1), 0)) / 100)
     return getDeFontanaSesion()
         .flatMap(sesion => Observable.create((obs: Observer<boolean>) => {
@@ -446,8 +450,8 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                 }
                 obs.complete();
             }
-            xhr.onerror = e =>  obs.error(e) 
-            let afecto = items.reduce((acc, it) => acc + Math.round(+(it['facturado'] * it.Precio).toFixed(2)), 0)
+            xhr.onerror = e => obs.error(e)
+            let afecto = items.reduce((acc, it) => acc + Math.round(+(it.facturado * it.Precio).toFixed(2)), 0)
             xhr.send(`<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/"
                 xmlns:dom="http://schemas.datacontract.org/2004/07/Dominio.General.Entidades"
@@ -476,13 +480,13 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:Detalles>${items.reduce((acc, va, i) => {
                     return acc + `
                                <ws1:PedidoDetalle>    
-                                    <ws1:Cantidad>${va['facturado']}</ws1:Cantidad>    
+                                    <ws1:Cantidad>${va.facturado}</ws1:Cantidad>    
                                     <ws1:Comentario>Item en ${va.Bultos ? va.Bultos.length : 0} bultos</ws1:Comentario>    
                                     <ws1:FechaEntrega>${os.FechaDespacho.toISOString().substr(0, 10)}</ws1:FechaEntrega>
                                     <ws1:IDProducto>${va.UnidadLog.Codigo}</ws1:IDProducto>    
                                     <ws1:LineaDetalle>${i + 1}</ws1:LineaDetalle>    
                                     <ws1:PrecioUnitario>${va.Precio || 0}</ws1:PrecioUnitario>
-                                    <ws1:SubTotal>${Math.round(+(va.Precio * va['facturado']).toFixed(2))}</ws1:SubTotal>    
+                                    <ws1:SubTotal>${Math.round(+(va.Precio * va.facturado).toFixed(2))}</ws1:SubTotal>    
                                 </ws1:PedidoDetalle>`}, '')}
                             </ws1:Detalles>
                             <ws1:EsFacturacionAnticipada>false</ws1:EsFacturacionAnticipada>
@@ -514,7 +518,7 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
                             <ws1:Numero>0</ws1:Numero>
                             <ws1:ObservacionDespacho>${os.Direccion}</ws1:ObservacionDespacho>
                             <ws1:ObservacionFacturacion>Total Bultos ${items.reduce((acc, it) => acc + (it.Bultos ? it.Bultos.length : 0), 0).toLocaleString()}
-Total Cantidad ${items.reduce((acc, it) => acc + it['facturado'], 0).toLocaleString()}
+Total Cantidad ${items.reduce((acc, it) => acc + it.facturado, 0).toLocaleString()}
                             </ws1:ObservacionFacturacion>
                             <ws1:ObservacionGeneral></ws1:ObservacionGeneral>
                             <ws1:ObservacionPrestacion></ws1:ObservacionPrestacion>

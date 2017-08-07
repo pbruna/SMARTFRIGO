@@ -39,7 +39,9 @@ export class ItemDespacho {
     Cantidad: number;
     Bultos: Bulto[];
     checked: boolean;
-    Precio: number
+    Precio: number;
+    facturado: number
+
 
     getCantidad(estado: EstadosOrden): number {
         switch (estado) {
@@ -83,7 +85,8 @@ export class UnidadLogistica {
     NomUnidad: string;
     Impuesto: string;
     Codigo: string;
-    Precio: number
+    Precio: number;
+    unidaddf: string
 
 }
 

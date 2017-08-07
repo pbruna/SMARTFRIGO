@@ -6,7 +6,23 @@
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "lib": [
+      "es2015",
+      "dom"
+    ],
     "removeComments": false,
-    "noImplicitAny": false
-  }
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "types/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "jspm_packages",
+    "aot"
+  ]
 }

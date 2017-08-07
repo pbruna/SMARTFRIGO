@@ -1,140 +1,74 @@
 import * as fs from 'fs'
-import * as archiver from 'archiver'
 import { Observable, Observer } from 'rxjs'
 import * as xmldom from 'xmldom'
 import * as XMLSerializer from 'xmlserializer'
 import * as uglify from 'uglify-js'
 import * as browserify from 'browserify'
+import * as copydir from 'copy-dir'
+import * as xpath from 'xpath'
+
 
 
 import * as content from '../enter_scripts/systemjs.import.content'
 import * as background from '../enter_scripts/systemjs.import.background'
 
+const distPath = '/publish/SMARTFRIGO/'
 var DOMParser = xmldom.DOMParser
-var zip = archiver('zip');
 
-var files = [/(fonts|app|back).*/]
-var exclude = /.*\.(js\.map|ts|js)$/
 var root = process.cwd();
-var addCount = 0;
-var totalCount = 0;
-var ingresados: { [file: string]: boolean } = {}
-
-function addPath(path: string): Observable<string> {
-    return Observable.bindNodeCallback<string[]>(fs.readdir)(path)
-        .flatMap(fls => fls)
-        .map(name => path + "\\" + name)
-        .filter(fullpath => files.some(e => {
-            if (typeof e === 'string')
-                return fullpath.toUpperCase() === (root + '\\' + e).toUpperCase();
-            else
-                return e.test(fullpath) && !exclude.test(fullpath)
-
-        }))
-        .flatMap(fullpath => Observable.forkJoin(Observable.bindNodeCallback(fs.stat)(fullpath), Observable.of(fullpath)))
-        .do(x => {
-            if (!x[0].isDirectory()) zip.append(/.*\.js$/.test(x[1])
-                ? uglify.minify(x[1]).code
-                : fs.createReadStream(x[1]),
-                { name: x[1].substr(root.length) })
-        })
-        .flatMap(x => x[0].isDirectory() ? addPath(x[1]) : Observable.of(x[1]))
-}
 
 function addIndexHtml(): Observable<string> {
     return Observable.create((obs: Observer<string>) => {
         fs.readFile(root + "\\index.html", (err, fd) => {
-            if (err) {
-                obs.error(err)
-                obs.complete()
-            }
-            let doc = new DOMParser().parseFromString(fd.toString())
-            let scs = doc.getElementsByTagName('script')
-            for (let k = 0; k < scs.length; ++k) {
-                let sc = scs.item(k)
-                let att = sc.getAttribute('keep')
-                if (att === 'false') {
-                    sc.parentNode.removeChild(sc)
-                    --k
-                    continue
+            if (err) obs.error(err)
+            let doc = new DOMParser().parseFromString(fd.toString(), "text/xml")
+
+            let nodes = <(HTMLScriptElement | HTMLLinkElement)[]>xpath.select("//script | //link", doc)
+
+            nodes.forEach(el => {
+                if (el.hasAttribute('no-keep')) return el.parentNode.removeChild(el)
+                if (el.hasAttribute('data-href')) {
+                    el.setAttribute('href', el.getAttribute('data-href'))
+                    el.removeAttribute('data-href')
                 }
-                sc.textContent = ' '
-                let src = sc.getAttribute('src')
-                let path = src.split('/')
-                let minify = sc.getAttribute('minify')
-                let filename = path[path.length - 1].split('?')[0]
-                if (src.indexOf('node_modules/') === 0) {
-                    sc.removeAttribute('minify')
-                    sc.setAttribute("src", "npm_scripts/" + path[path.length - 1])
-                    obs.next("npm_scripts/" + filename)
-                    path.pop()
-                    if (!ingresados["npm_scripts/" + filename]) {
-                        ingresados["npm_scripts/" + filename] = true
-                        zip.append(minify === 'true'
-                            ? uglify.minify(root + '\\' + path.join('\\') + '\\' + filename).code
-                            : fs.createReadStream(root + '\\' + path.join('\\') + '\\' + filename),
-                            { name: "npm_scripts/" + filename })
-                    }
-                } else if (sc.getAttribute('bundle')) {
-                    let bundle = sc.getAttribute('bundle')
-                    let bify = browserify()
-                    bify.add(bundle)
-                    let rs = <fs.ReadStream>bify.bundle()
-                    let txt = '';
-                    rs.on('data', chunk => txt += chunk);
-                    rs.on('end', () => {
-                        //zip.append(txt, { name: bundle })
-                        zip.append(uglify.minify(txt, 
-                        { fromString: true, mangle: true, compress: true }).code, { name: bundle })
-
-                        obs.next(bundle)
-                        obs.complete()
-                    });
-                    rs.on('error', err => {
-                        obs.error(err)
-                    })
-                    rs.read()
-
-                    sc.removeAttribute('bundle')
-                    sc.setAttribute("src", bundle)
-
-                }
-            }
-
-            let lks = doc.getElementsByTagName('link')
-            for (let k = 0; k < lks.length; ++k) {
-                let lk = lks.item(k)
-                let att = lk.getAttribute('keep')
-                if (att === 'false') {
-                    lk.parentNode.removeChild(lk)
-                    --k
-                    continue
-                }
-                let src = lk.getAttribute('href')
-                if (src.indexOf('node_modules/') === 0) {
-                    let path = src.split('/')
-                    let minify = lk.getAttribute('minify')
-                    lk.removeAttribute('minify')
-                    lk.setAttribute("href", "npm_scripts/" + path[path.length - 1])
-                    obs.next("npm_scripts/" + path[path.length - 1])
-                    let filename = path[path.length - 1].split('?')[0]
-                    path.pop()
-                    if (!ingresados["npm_scripts/" + filename]) {
-                        ingresados["npm_scripts/" + filename] = true
-                        zip.append(minify === 'true'
-                            ? uglify.minify(root + '\\' + path.join('\\') + '\\' + filename).code
-                            : fs.createReadStream(root + '\\' + path.join('\\') + '\\' + filename),
-                            { name: "npm_scripts\\" + filename })
-                    }
-
+                if (el.hasAttribute('data-src')) {
+                    el.setAttribute('src', el.getAttribute('data-src'))
+                    el.removeAttribute('data-src')
                 }
 
-            }
+                let href = el.getAttribute('href')
+                let src = el.getAttribute('src')
+                let minify = el.hasAttribute('minify')
+                let copyFile = !el.hasAttribute('no-copy-file')
+                el.removeAttribute('no-copy-file')
+                el.removeAttribute('minify')
 
+                let pathArr = (href || src).split('/')
+                let filename = pathArr.pop()
+                let path = root + '\\' + pathArr.join('\\') + '\\'
+
+                if (href) el.setAttribute('href', filename)
+                if (src) el.setAttribute('src', filename)
+
+                if (el.tagName === 'script') el.textContent = ' '
+                filename = filename.split('?')[0]
+                if (minify)
+                    fs.writeFile(root + distPath + filename, uglify.minify(path + filename).code)
+                else if (copyFile)
+                    fs.createReadStream(path + filename).pipe(fs.createWriteStream(root + distPath + filename));
+
+                if (copyFile) obs.next(distPath + filename)
+            })
+
+
+
+            fs.writeFile(root + distPath + 'index.html',
+                XMLSerializer.serializeToString(doc)
+                    .replace(/\n\t/g, '')
+                    .replace('xmlns="undefined"', '')
+                    .replace(/> </g, '><'))
             obs.next(root + "\\index.html")
-            doc.documentElement.removeAttribute('xmlns')
-
-            zip.append(XMLSerializer.serializeToString(doc), { name: "index.html" })
+            obs.complete()
 
         })
     })
@@ -161,12 +95,12 @@ function addManifest(): Observable<string> {
                 .do(x => manifest.web_accessible_resources = x)
         ))
         .flatMap(scs => scs)
-        .finally(() => zip.append(JSON.stringify(manifest, null, 2), { name: "manifest.json" }))
+        .finally(() => fs.writeFile(root + distPath + 'manifest.json', JSON.stringify(manifest, null, 2)))
 
 
 }
 
-function zipAndGetScripts(scs: string[], url): Observable<string[]> {
+function zipAndGetScripts(scs: string[], url: string): Observable<string[]> {
     if (!scs) return Observable.of([])
     let bundle = (url ? content.getBundle(url) : background.getBundle()).split('/').join(String.fromCharCode(92))
     return Observable.from(scs)
@@ -175,14 +109,22 @@ function zipAndGetScripts(scs: string[], url): Observable<string[]> {
             if (sc.indexOf('enter_scripts/systemjs.import') === 0) {
                 let bify = browserify();
                 bify.add(bundle)
-                return StreamToStringObservable(bify.bundle())
-                    .map(x => {
-                        return {
-                            path: false,
-                            text: x,
-                            filename: `npm_scripts/${bundle.split(String.fromCharCode(92)).slice(-1)[0]}`
-                        }
+                StreamToStringObservable(bify.bundle())
+                    .map(code => uglify.minify(code, { fromString: true }).code)
+                    .do(minCode => fs.writeFile(root + distPath + `npm_scripts/${bundle.split(String.fromCharCode(92)).slice(-1)[0]}`, minCode))
+                    .subscribe({
+                        next: nxt => console.log('OK min', bundle),
+                        error: err => console.error('Bundle error', bundle, err)
                     })
+
+                sc = bundle.split(String.fromCharCode(92)).slice(-1)[0]
+            } else {
+                if (sc.indexOf('.min.js') === 0 || !/.js$/g.test(sc))
+                    fs.createReadStream(root + '\\' + sc.split('/').join('\\'))
+                        .pipe(fs.createWriteStream(root + distPath + 'npm_scripts\\' + sc.split('/').slice(-1)[0]));
+                else
+                    fs.writeFile(root + distPath + 'npm_scripts\\' + sc.split('/').slice(-1)[0],
+                        uglify.minify(root + '\\' + sc.split('/').join('\\')).code)
 
             }
             return Observable.of(
@@ -192,25 +134,13 @@ function zipAndGetScripts(scs: string[], url): Observable<string[]> {
                     filename: `npm_scripts/${sc.split('/').slice(-1)[0]}`
                 })
         })
-        .do(x => { // lo ingresamos si no está repetido
-            if (ingresados[x.filename]) return
-            if (x.path)
-                if (x.text.indexOf('.min.') === -1 && !/\.css$/.test(x.filename))
-                    zip.append(uglify.minify(x.text).code, { name: x.filename })
-                else
-                    zip.append(fs.createReadStream(x.text), { name: x.filename })
-            else
-                //zip.append(x.text, { name: x.filename })
-                zip.append(uglify.minify(x.text, { fromString: true }).code, { name: x.filename })
-            ingresados[x.filename] = true
-        })
         .map(x => x.filename)
         .reduce((acc, x) => acc.concat([x]), [])
 
 
 }
 
-function StreamToStringObservable(rs: fs.ReadStream): Observable<string> {
+function StreamToStringObservable(rs: NodeJS.ReadableStream): Observable<string> {
     return Observable.create((obs: Observer<string>) => {
         let txt = '';
         rs.on('data', chunk => txt += chunk);
@@ -225,18 +155,16 @@ function StreamToStringObservable(rs: fs.ReadStream): Observable<string> {
     })
 }
 
-
-var output = fs.createWriteStream('publish/SMARTFRIGO.zip');
-output.on('close', function () {
-    console.log('Archivo zip creado satisfactoriamente');
-});
-
-
-zip.pipe(output);
-Observable.concat(addPath(root), addManifest(), addIndexHtml())
-    .subscribe(
-    x => console.log(x),
-    err => console.log(err),
-    () => zip.finalize()
-    )
+Observable.bindCallback(fs.mkdir)(root + distPath + '\\npm_scripts')
+    .concat(addManifest(), addIndexHtml())
+    .subscribe({
+        next: x => console.log(x),
+        error: err => console.log(err),
+        complete: () => {
+            if (!fs.existsSync(root + distPath + '\\images')) fs.mkdirSync(root + distPath + '\\images')
+            if (!fs.existsSync(root + distPath + '\\fonts')) fs.mkdirSync(root + distPath + '\\fonts')
+            copydir.sync(root + '\\images', root + distPath + '\\images')
+            copydir.sync(root + '\\fonts', root + distPath + '\\fonts')
+        }
+    })
 

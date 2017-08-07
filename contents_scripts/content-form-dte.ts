@@ -9,27 +9,21 @@
         chrome.runtime.sendMessage({ op: 'QuienSoy' }, null, function (response) {
             TabId = response.tabId + '';
             switch (window.location.href) {
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?':
-                    chrome.storage.local.get(TabId, function (item) {
-                        if (item[TabId]) RellenarFormularioSIIPostBack(item[TabId]);
-                    });
-                    break;
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=33&esCRED_EC=FALSE':
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=34&esCRED_EC=FALSE':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=33':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=34':
+                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=52':
                     listItms = 1
                 case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?TIPO_PLANTILLA=NC_BLANCO&PTDC_CODIGO=61':
                 case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?TIPO_PLANTILLA=NC_BLANCO&PTDC_CODIGO=56':
-                case 'https://www1.sii.cl/cgi-bin/Portal001/mipeGenFacEx.cgi?PTDC_CODIGO=52&esCRED_EC=FALSE':
                     if (listItms === undefined) listItms = 3
                     chrome.storage.local.remove(TabId);
-                    console.log('removed')
                     break;
 
             }
         });
     }
 
-    function RellenarFormularioSII(dte) {
+    function RellenarFormularioSII(dte: any) {
 
         clearDTE()
 
@@ -48,10 +42,10 @@
 
 
 
-        if (dte.items.some(function (item) { return item.codigo; })) //Verifica si algun item de la factura tiene codigo
+        if (dte.items.some((item: any) => item.codigo)) //Verifica si algun item de la factura tiene codigo
             $("[name='COD_SI_NO']")[0].click();
 
-        if (dte.items.some(function (item) {
+        if (dte.items.some((item: any) => {
             if (!item.impuesto) return false;
             if (dte.retenedorIVACarne) return item.impuesto != '18'
             return true;
@@ -67,7 +61,7 @@
             if (i >= listItms) $("[name='AGREGA_DETALLE']").click();
 
 
-            var id = ('0' + (i + 1)).slice(-2);
+            let id = ('0' + (i + 1)).slice(-2);
 
 
             if (dte.items[i].tipoCod) {
@@ -144,17 +138,6 @@
 
     }
 
-    function RellenarFormularioSIIPostBack(minidte) {
-        var event = new KeyboardEvent('change')
-
-
-        if (minidte.emision) {
-
-            $("[name='EFXP_FCH_EMIS']").val(minidte.emision.substr(0, 10));
-            document.querySelector("[name='EFXP_FCH_EMIS']").dispatchEvent(event);
-
-        }
-    }
 
     function clearDTE() {
 
@@ -242,12 +225,6 @@
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         switch (message.op) {
             case 'RellenarSIIForm':
-                let o = {}
-                o[message.tabId] = {
-                    NumOrden: message.NumOrden,
-                    emision: message.dte.emision
-                };
-                chrome.storage.local.set(o);
                 RellenarFormularioSII(message.dte)
                 break;
         }

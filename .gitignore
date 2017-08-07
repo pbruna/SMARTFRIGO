@@ -14,6 +14,7 @@ enter_scripts/**/*.js.map
 packages_scripts/**/*.js
 packages_scripts/**/*.js.map
 publish
+aot
 
 
 

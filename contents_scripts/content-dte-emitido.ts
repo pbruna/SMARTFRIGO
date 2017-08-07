@@ -151,9 +151,6 @@ import 'jquery-ui/ui/safe-blur'
 
 })();
 
-declare var PDFJS: any;
-
-
 class ScanPDF417 {
     ScanPDF417FromImgHTMLElement = function (image: HTMLImageElement): ScanPDF417Result {
         var
@@ -189,15 +186,13 @@ class ScanPDF417 {
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
 
-                    page.render({ canvasContext: context, viewport: viewport }).promise.then(function () {
+                    page.render({ canvasContext: context, viewport: viewport }).then(function () {
                         var img = document.createElement('img');
                         img.onload = function () {
                             if (callBack) callBack(sc.ScanPDF417FromImgHTMLElement(img));
                         }
                         img.src = canvas.toDataURL('image/jpeg');
-                    }, function (err) {
-                        console.log(err);
-                    });
+                    }, (err: any) => console.log(err));
 
                 });
 
