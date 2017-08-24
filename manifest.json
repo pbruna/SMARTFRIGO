@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "SMARTFRIGO",
 	"description": "Aplicacion de soporte para ALMAFRIGO",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"icons": {
 		"128": "images/IconoAlmafrigo128.png",
 		"48": "images/IconoAlmafrigo48.png",

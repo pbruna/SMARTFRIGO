@@ -1,6 +1,6 @@
-node_modules/
-typings/
-jspm_packages/
+node_modules
+typings
+jspm_packages
 
 # map.js y js
 app/**/*.js
@@ -15,7 +15,3 @@ packages_scripts/**/*.js
 packages_scripts/**/*.js.map
 publish
 aot
-
-
-
-

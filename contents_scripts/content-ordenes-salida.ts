@@ -39,66 +39,6 @@ let cliente: {
 }
 
 
-function getDeFontanaSesion(): Observable<sesion> {
-    return Observable.create((obs: Observer<sesion>) => {
-
-        if (cliente.Campos.defontana.sesion) {
-            obs.next(cliente.Campos.defontana.sesion);
-            obs.complete();
-            return;
-        }
-
-        let xhr = new XMLHttpRequest()
-        xhr.open('post', cliente.Campos.defontana.url + '/VENTAS_SOAP/VentaService.svc')
-        xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
-        xhr.responseType = 'document'
-        xhr.onload = () => {
-            try {
-                if (xhr.status !== 200) {
-                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                    obs.error(el.textContent)
-                    return
-                }
-                if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
-                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Core'
-                    cliente.Campos.defontana.sesion = {
-                        IDCliente: xhr.responseXML.getElementsByTagNameNS(ns, 'IDCliente').item(0).textContent,
-                        IDEmpresa: xhr.responseXML.getElementsByTagNameNS(ns, 'IDEmpresa').item(0).textContent,
-                        IDSesion: xhr.responseXML.getElementsByTagNameNS(ns, 'IDSesion').item(0).textContent,
-                        IDUsuario: xhr.responseXML.getElementsByTagNameNS(ns, 'IDUsuario').item(0).textContent,
-                    }
-                    obs.next(cliente.Campos.defontana.sesion);
-                } else obs.error('No se pudo iniciar sesión')
-            } catch (e) {
-                obs.error(e)
-            }
-            obs.complete();
-
-        }
-        xhr.onerror = e => {
-            obs.error(e)
-            obs.complete();
-        }
-        xhr.send(`<?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="VentaServicio">
-        <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
-            <wsa:To>${cliente.Campos.defontana.url}/VENTAS_SOAP/VentaService.svc</wsa:To>
-            <wsa:Action>VentaServicio/VentaServicio/Login</wsa:Action>
-        </soap:Header>
-        <soap:Body>
-     
-            <tem:Login>
-                <tem:idEmpresa>${cliente.Campos.defontana.credenciales.idEmpresa}</tem:idEmpresa>
-                <tem:idUsuario>${cliente.Campos.defontana.credenciales.idUsuario}</tem:idUsuario>
-                <tem:password>${cliente.Campos.defontana.credenciales.password}</tem:password>
-                <tem:ipOrigen></tem:ipOrigen>
-            </tem:Login>    
-        </soap:Body>
-        </soap:Envelope>`)
-    })
-}
-
 function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
     let itms: { [cod: string]: ItemDespacho } = {};
     os.Items.forEach(it => itms[it.UnidadLog.Codigo] = it)
@@ -162,6 +102,63 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
 
 }
 
+function getDeFontanaSesion(): Observable<sesion> {
+    return Observable.create((obs: Observer<sesion>) => {
+
+        if (cliente.Campos.defontana.sesion) {
+            obs.next(cliente.Campos.defontana.sesion);
+            obs.complete();
+            return;
+        }
+
+        let xhr = new XMLHttpRequest()
+        xhr.open('post', cliente.Campos.defontana.url + '/VENTAS_SOAP/VentaService.svc')
+        xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
+        xhr.responseType = 'document'
+        xhr.onload = () => {
+            try {
+                if (xhr.status !== 200)
+                    return sendError(obs, xhr)
+
+                if (xhr.responseXML.getElementsByTagName('LoginResult').item(0).childNodes.length > 0) {
+                    let ns = 'http://schemas.datacontract.org/2004/07/WS.Core'
+                    cliente.Campos.defontana.sesion = {
+                        IDCliente: xhr.responseXML.getElementsByTagNameNS(ns, 'IDCliente').item(0).textContent,
+                        IDEmpresa: xhr.responseXML.getElementsByTagNameNS(ns, 'IDEmpresa').item(0).textContent,
+                        IDSesion: xhr.responseXML.getElementsByTagNameNS(ns, 'IDSesion').item(0).textContent,
+                        IDUsuario: xhr.responseXML.getElementsByTagNameNS(ns, 'IDUsuario').item(0).textContent,
+                    }
+                    obs.next(cliente.Campos.defontana.sesion);
+                } else obs.error('No se pudo iniciar sesión')
+            } catch (e) {
+                obs.error(e)
+            }
+            obs.complete();
+
+        }
+        xhr.onerror = e => {
+            obs.error(e)
+            obs.complete();
+        }
+        xhr.send(`<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="VentaServicio">
+        <soap:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
+            <wsa:To>${cliente.Campos.defontana.url}/VENTAS_SOAP/VentaService.svc</wsa:To>
+            <wsa:Action>VentaServicio/VentaServicio/Login</wsa:Action>
+        </soap:Header>
+        <soap:Body>
+     
+            <tem:Login>
+                <tem:idEmpresa>${cliente.Campos.defontana.credenciales.idEmpresa}</tem:idEmpresa>
+                <tem:idUsuario>${cliente.Campos.defontana.credenciales.idUsuario}</tem:idUsuario>
+                <tem:password>${cliente.Campos.defontana.credenciales.password}</tem:password>
+                <tem:ipOrigen></tem:ipOrigen>
+            </tem:Login>    
+        </soap:Body>
+        </soap:Envelope>`)
+    })
+}
+
 function addArticuloADeFontana(item: ItemDespacho): Observable<articuloDF> {
     return getDeFontanaSesion()
         .flatMap(sesion => Observable.create((obs: Observer<articuloDF>) => {
@@ -178,12 +175,9 @@ function addArticuloADeFontana(item: ItemDespacho): Observable<articuloDF> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 try {
-                    if (xhr.status !== 200) {
-                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                        obs.error(el.textContent)
-                        return
-                    }
+                    if (xhr.status !== 200)
+                        return sendError(obs, xhr)
+
                     xhr.responseXML.getElementsByTagName('GrabaProductoResult').item(0);
                     obs.next(art);
                 } catch (e) {
@@ -230,7 +224,6 @@ function addArticuloADeFontana(item: ItemDespacho): Observable<articuloDF> {
         }))
 }
 
-
 function getArticuloDeFontana(codigo: string): Observable<articuloDF | string> {
     return getDeFontanaSesion()
         .flatMap(sesion => Observable.create((obs: Observer<articuloDF | string>) => {
@@ -240,12 +233,9 @@ function getArticuloDeFontana(codigo: string): Observable<articuloDF | string> {
             xhr.responseType = 'document'
             xhr.onload = () => {
                 try {
-                    if (xhr.status !== 200) {
-                        let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                        if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                        obs.error(el.textContent)
-                        return
-                    }
+                    if (xhr.status !== 200)
+                        return sendError(obs, xhr)
+
                     let artRep = xhr.responseXML.getElementsByTagName('ConsultaArticulosResult').item(0)
                     let ns = 'http://schemas.datacontract.org/2004/07/WS.Inventario'
                     if (artRep.childNodes.length > 0) obs.next({
@@ -295,12 +285,9 @@ function getClienteDeFontana(rut: string): Observable<clienteDF> {
             xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
             xhr.responseType = 'document'
             xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                    obs.error(el.textContent)
-                    return
-                }
+                if (xhr.status !== 200)
+                    return sendError(obs, xhr)
+
                 try {
                     let elem = xhr.responseXML.getElementsByTagName('ConsultaClientesPorCodLegalResult').item(0)
                     let ns = 'http://schemas.datacontract.org/2004/07/WS.Ventas'
@@ -354,12 +341,9 @@ function getContactoClienteDeFontana(cliDF: clienteDF): Observable<clienteDF> {
             xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
             xhr.responseType = 'document'
             xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                    obs.error(el.textContent)
-                    return
-                }
+                if (xhr.status !== 200)
+                    return sendError(obs, xhr)
+
                 try {
                     let elem = xhr.responseXML.getElementsByTagName('GetContactosFichaClienteResult').item(0);
                     let ns = 'http://schemas.datacontract.org/2004/07/WS.Ventas'
@@ -436,11 +420,9 @@ function savePedidoEnDeFontana(os: OrdenDeSalida, items: ItemDespacho[], cliDF: 
             xhr.setRequestHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
             xhr.responseType = 'document'
             xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    let el = xhr.responseXML.getElementsByTagName('Message').item(0)
-                    if (!el) el = xhr.responseXML.getElementsByTagName('Text').item(0)
-                    return obs.error(el.textContent)
-                }
+                if (xhr.status !== 200)
+                    return sendError(obs, xhr)
+
                 let art: { Rut: string, Razon: string }
                 try {
                     xhr.responseXML.getElementsByTagName('GrabaPedidoResultRetorno').item(0);
@@ -536,6 +518,12 @@ function sendMessageBackToPage(msg: string) {
     document.dispatchEvent(new CustomEvent('EnviarMensaje', { detail: msg }))
 }
 
+function sendError(obs: Observer<any>, xhr: XMLHttpRequest) {
+    let ns = 'http://www.w3.org/2003/05/soap-envelope'
+    let el = xhr.responseXML.getElementsByTagNameNS(ns, 'Message').item(0)
+    if (!el) el = xhr.responseXML.getElementsByTagNameNS(ns, 'Text').item(0)
+    obs.error(el.textContent)
+}
 
 
 
