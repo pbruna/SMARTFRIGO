@@ -61,7 +61,12 @@ function addOrdenADeFontanaPedido(os: OrdenDeSalida): Observable<boolean> {
         .do(x => sendMessageBackToPage('Sesión iniciada correctamente'))
         .flatMap(() => Observable.forkJoin(
             Observable.from(os.Items)
+                .do(it => {
+                    if(it.UnidadLog.Codigo == null || it.UnidadLog.Codigo == '') 
+                    throw `El artículo ${it.UnidadLog.Nombre} no tiene código asignado, posiblemente es producto nuevo`
+                })
                 .do(it => sendMessageBackToPage(`Confirmando existencia de ${it.UnidadLog.Codigo} ${it.UnidadLog.Nombre}`))
+                .do(it => it.UnidadLog.Impuesto = it.UnidadLog.Impuesto || '')
                 .flatMap(it => getArticuloDeFontana(it.UnidadLog.Codigo))
                 .do(art => { if (art === 'string') sendMessageBackToPage(`Creando artículo ${art} ${itms[art].UnidadLog.Nombre}`) })
                 .flatMap(art => typeof art === 'string'

@@ -3,7 +3,8 @@
   "version": "2.0.0",
   "scripts": {
     "build:aot": "ngc -p tsconfig-aot.json && rollup -c rollup.config.js",
-    "build:zip": "tsc && node packages_scripts/zipscript.js"
+    "build:zip": "tsc && node packages_scripts/zipscript.js",
+    "build": "npm run build:aot && npm run build:zip"
   },
   "license": "ISC",
   "dependencies": {
